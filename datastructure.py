@@ -20,3 +20,76 @@ del list[0]
 print('I bought the', olditem)
 print('My shopping list is now', list)
 
+# 数据结构-元组,不可变
+tuple = ('python', 'elephant', 'penguin')
+# tuple[3] = "change"	# TypeError: 'tuple' object does not support item assignment
+print('Number of animals in the tuple is', len(tuple))
+new_tuple = ('monkey', 'camel', tuple)
+print('Number of cages in the new tuple is', len(new_tuple))
+print('All animals in new tuple are', new_tuple)
+print('Animals brought from old tuple are', new_tuple[2])
+print('Last animal brought from old tuple is', new_tuple[2][2])
+print('Number of animals in the new tuple is', len(new_tuple) - 1 + len(new_tuple[2]))
+
+singleton_tuple = (2,)
+print(singleton_tuple)
+
+# 数据结构-字典,只能使用不可变的对象（比如字符串）来作为字典的键，但是你可以把不可变或可变的对象作为字典的值
+dict = {
+	'Mingle' : 'jinminglei@yeah.net',
+	'Larry' : 'larry@wall.org',
+	'Matsumoto' : 'matz@ruby-lang.org',
+	'Spammer' : 'spammer@hotmail.com'
+}
+print("Mingle's address is", dict['Mingle'])
+# Deleting a key-value pair
+del dict['Spammer']
+print('\nThere are {0} contacts in the address-book\n'.format(len(dict)))
+for name, address in dict.items():
+	print('Contact {0} at {1}'.format(name, address))
+# Adding a key-value pair
+dict['Guido'] = 'guido@python.org'
+if 'Guido' in dict: # OR dict.has_key('Guido')
+	print("\nGuido's address is", dict['Guido'])
+
+# 数据结构-序列,列表、元组和字符串都是序列
+shoplist = ['apple', 'mango', 'carrot', 'banana']
+name = 'mingle'
+
+# Indexing or 'Subscription' operation
+print('Item 0 is', shoplist[0])
+print('Item 1 is', shoplist[1])
+print('Item 2 is', shoplist[2])
+print('Item 3 is', shoplist[3])
+print('Item -1 is', shoplist[-1])
+print('Item -2 is', shoplist[-2])
+print('Character 0 is', name[0])
+
+# Slicing on a list
+print('Item 1 to 3 is', shoplist[1:3])
+print('Item 2 to end is', shoplist[2:])
+print('Item 1 to -1 is', shoplist[1:-1])
+print('Item start to end is', shoplist[:])
+# 切片的步长(默认步长是1)
+print('Step is 1', shoplist[::1])
+print('Step is 2', shoplist[::2])
+print('Step is 3', shoplist[::3])
+print('Step is 4', shoplist[::4])
+print('Step is 5', shoplist[::5])
+
+# Slicing on a string
+print('characters 1 to 3 is', name[1:3])
+print('characters 2 to end is', name[2:])
+print('characters 1 to -1 is', name[1:-1])
+print('characters start to end is', name[:])
+
+# 数据结构-集合,没有顺序的简单对象的聚集
+collections = set(['brazil', 'russia', 'india'])
+print("india" in collections)
+print("china" in collections)
+collections_copy = collections.copy()
+collections_copy.add("china");
+print("china" in collections_copy)
+collections_copy.issuperset(collections)
+collections.remove("russia")
+print(collections_copy & collections)
