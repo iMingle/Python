@@ -88,8 +88,37 @@ collections = set(['brazil', 'russia', 'india'])
 print("india" in collections)
 print("china" in collections)
 collections_copy = collections.copy()
-collections_copy.add("china");
+collections_copy.add("china")
 print("china" in collections_copy)
 collections_copy.issuperset(collections)
 collections.remove("russia")
 print(collections_copy & collections)
+
+# 数据结构-引用,当你创建一个对象并给它赋一个变量的时候，这个变量仅仅引用那个对象，而不是表示这个对象本身
+# 列表的赋值语句不创建拷贝。你得使用切片操作符来建立序列的拷贝
+print('Simple Assignment')
+shoplist = ['apple', 'mango', 'carrot', 'banana']
+mylist = shoplist # mylist is just another name pointing to the same object!
+del shoplist[0] # I purchased the first item, so I remove it from the list
+print('shoplist is', shoplist)
+print('mylist is', mylist)
+# notice that both shoplist and mylist both print the same list without
+# the 'apple' confirming that they point to the same object
+print('Copy by making a full slice')
+mylist = shoplist[:] # make a copy by doing a full slice
+del mylist[0] # remove first item
+print('shoplist is', shoplist)
+print('mylist is', mylist)
+
+# 数据结构-字符串
+name = 'Mingle' # This is a string object
+
+if name.startswith('Min'):
+	print('Yes, the string starts with "Min"')
+if 'e' in name:
+	print('Yes, it contains the string "e"')
+if name.find('war') != -1:
+	print('Yes, it contains the string "war"')
+delimiter = '_*_'
+mylist = ['Brazil', 'Russia', 'India', 'China']
+print(delimiter.join(mylist))
