@@ -7,7 +7,7 @@ import os
 import time
 import zipfile
 
-source = [r'D:\mingle\mbackup.py']	# Notice we had to use double quotes inside the string for names with spaces in it.
+source = [r'C:\Users\mingle\Desktop\backup.txt']	# Notice we had to use double quotes inside the string for names with spaces in it.
 target_dir = r'D:\Backup'
 
 if not os.path.exists(target_dir):
