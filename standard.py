@@ -28,25 +28,7 @@ logging.debug("Start of the program")
 logging.info("Doing something")
 logging.warning("Dying now")
 
-#Get your own APP ID at http://developer.yahoo.com/wsregapp/
-SEARCH_BASE = 'http://apis.baidu.com/heweather/pro/attractions'
-
-class YahooSearchError(Exception):
-	pass
-
-def search(query, results=20, start=1, **kwargs):
-	kwargs.update({
-		"query": query,
-		"results": results,
-		"start": start,
-		"output": "json",
-	})
-	url = SEARCH_BASE + "?" + urllib.parse.urlencode(kwargs)
-	result = json.load(urllib.request.urlopen(url))
-	if "Error" in result:
-		raise YahooSearchError(result["Error"])
-	return result["ResultSet"]
-
-query = input("What do you want to search for?")
-for result in search(query)["Result"]:
-	print("{0}: {1}".format(result["Title"], result["Url"]))
+response = urllib.request.urlopen('https://www.baidu.com')
+print(response.readline())
+print(json.dumps(['foo', {'bar': ('baz', None, 1.0, 2)}]))
+print(json.loads('["foo", {"bar":["baz", null, 1.0, 2]}]'))
