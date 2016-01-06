@@ -7,8 +7,16 @@ class Person:
 p = Person()
 print(p)
 print(type(p))
-print(isinstance(p, object))	# True Python 3.0 以上 object已经作为默认基类被继承
+print(isinstance(p, object))	# True Python 3.0以上object已经作为默认基类被继承
+print(issubclass(Person, Person))
 print(dir(p))
+
+class Person1:
+	def show(self):
+		print("I am Person1")
+
+# Person.__bases__ = (Person1,)	# it is a bug
+# print(p.show())
 
 class Person(object):
 	def __init__(self, name):
