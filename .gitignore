@@ -1,8 +1,10 @@
 target/
 .idea/
 .settings/
+__pycache__/
 .classpath
 .project
 .factorypath
 .txt
 .data
+.pyc
