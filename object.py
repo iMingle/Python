@@ -1,6 +1,6 @@
-# Copyright (c) 2016, Mingle. All rights reserved.
-# Author: Mingle
-# Contact: jinminglei@yeah.net
+"""Object
+
+"""
 
 class Person:
 	pass	# An empty block

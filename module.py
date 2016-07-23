@@ -1,6 +1,6 @@
-# Copyright (c) 2016, Mingle. All rights reserved.
-# Author: Mingle
-# Contact: jinminglei@yeah.net
+"""Module
+
+"""
 
 import sys
 from sys import argv

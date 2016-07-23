@@ -1,6 +1,6 @@
-# Copyright (c) 2016, Mingle. All rights reserved.
-# Author: Mingle
-# Contact: jinminglei@yeah.net
+"""IO
+
+"""
 
 import string
 import pickle	# 持久地存储对象

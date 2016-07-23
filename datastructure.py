@@ -1,6 +1,6 @@
-# Copyright (c) 2016, Mingle. All rights reserved.
-# Author: Mingle
-# Contact: jinminglei@yeah.net
+"""Data structure
+
+"""
 
 # 数据结构-列表
 list = ["apple", "orange", "banana", "carrot"]
