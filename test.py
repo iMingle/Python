@@ -65,3 +65,67 @@ print(i)
 print(repr(i))
 print(eval(repr(i)))
 print(eval(repr(i)) == i)
+
+from operator import itemgetter
+
+from itertools import groupby
+from datetime import datetime, timedelta
+
+groupMapStore = [
+    {"id": 1, "name": "name1", "s_id": 100},
+    {"id": 1, "name": "name1", "s_id": 101},
+    {"id": 1, "name": "name1", "s_id": 102},
+    {"id": 1, "name": "name1", "s_id": 103},
+    {"id": 2, "name": "name2", "s_id": 104},
+    {"id": 2, "name": "name2", "s_id": 105},
+    {"id": 3, "name": "name3", "s_id": 106}
+]
+
+orders = [
+    {"company_id": 100, "date": "2016-06-01", "price1": 12.3, "price2": 23.4},
+    {"company_id": 100, "date": "2016-06-01", "price1": 10.3, "price2": 22.4},
+    {"company_id": 100, "date": "2016-06-02", "price1": 10.3, "price2": 22.4},
+    {"company_id": 100, "date": "2016-06-03", "price1": 10.3, "price2": 22.4},
+    {"company_id": 100, "date": "2016-06-04", "price1": 10.3, "price2": 22.4},
+    {"company_id": 100, "date": "2016-06-05", "price1": 10.3, "price2": 22.4},
+    {"company_id": 100, "date": "2016-06-06", "price1": 10.3, "price2": 22.4},
+    {"company_id": 100, "date": "2016-06-07", "price1": 10.3, "price2": 22.4},
+    {"company_id": 100, "date": "2016-06-08", "price1": 10.3, "price2": 22.4},
+    {"company_id": 100, "date": "2016-06-09", "price1": 10.3, "price2": 22.4},
+    {"company_id": 100, "date": "2016-06-10", "price1": 10.3, "price2": 22.4},
+    {"company_id": 100, "date": "2016-06-11", "price1": 10.3, "price2": 22.4},
+
+    {"company_id": 101, "date": "2016-06-01", "price1": 12.3, "price2": 23.4},
+    {"company_id": 101, "date": "2016-06-02", "price1": 12.3, "price2": 23.4},
+    {"company_id": 102, "date": "2016-06-08", "price1": 12.3, "price2": 23.4},
+    {"company_id": 103, "date": "2016-06-09", "price1": 12.3, "price2": 23.4},
+    {"company_id": 104, "date": "2016-06-10", "price1": 12.3, "price2": 23.4},
+    {"company_id": 105, "date": "2016-06-11", "price1": 12.3, "price2": 23.4},
+    {"company_id": 106, "date": "2016-06-12", "price1": 12.3, "price2": 23.4}
+]
+
+groupMap = {}
+for id, items in groupby(groupMapStore, key=itemgetter("id")):
+    arr = []
+    name = ""
+    print(items)
+    for item in items:
+        item.pop("id")
+        name = item.pop("name")
+        sid = item.pop("s_id")
+        arr.append(sid)
+    groupMap[str(id) + "_" + name] = arr;
+
+for order in orders:
+    order["date"] = datetime.strptime(order["date"], "%Y-%m-%d")
+print(groupMap)
+print(orders)
+
+date = "2016-07-01"
+d = datetime.strptime(date, "%Y-%m-%d")
+print(d + timedelta(days=1))
+
+def week_of_month(year, month, day):
+    end = int(datetime.datetime(year, month, day).strptime("%W"))
+    start = int(datetime.datetime(year, month, 1).strptime("%W"))
+    return end - start + 1
