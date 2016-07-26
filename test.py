@@ -126,6 +126,7 @@ d = datetime.strptime(date, "%Y-%m-%d")
 print(d + timedelta(days=1))
 
 def week_of_month(year, month, day):
-    end = int(datetime.datetime(year, month, day).strptime("%W"))
-    start = int(datetime.datetime(year, month, 1).strptime("%W"))
+    end = int(datetime(year, month, day).strftime("%W"))
+    start = int(datetime(year, month, 1).strftime("%W"))
     return end - start + 1
+print(week_of_month(2016, 8, 1))
