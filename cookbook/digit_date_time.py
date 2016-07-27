@@ -24,3 +24,321 @@ c = a + b
 print(c)
 c = round(c, 2)
 print(c)
+
+#2 执行精确的小数计算
+from decimal import Decimal
+a = Decimal("4.2")
+b = Decimal("2.1")
+print(a + b)
+print(Decimal("6.3") == (a + b))
+
+from decimal import localcontext
+a = Decimal("1.3")
+b = Decimal("1.7")
+print(a / b)
+with localcontext() as ctx:
+	ctx.prec = 3
+	print(a / b)
+with localcontext() as ctx:
+	ctx.prec = 50
+	print(a / b)
+
+# 大数和小数相加可能出错
+nums = [1.23e+18, 1, -1.23e+18]
+print(sum(nums))
+import math
+print(math.fsum(nums))
+
+#3 对数值做格式化输出
+# 格式化格式: [<>^]?width[,]?(.digits)?
+x = 1234.56789
+x = Decimal("1234.56789")
+print(format(x, ".2f"))
+print(format(-x, ".2f"))
+print(format(x, ">10.1f"))
+print(format(x, "<10.1f"))
+print(format(x, "^10.1f"))
+print(format(x, ","))
+print(format(x, ",.1f"))
+print(format(x, "0,.1f"))
+print(format(x, "e"))
+print(format(x, ".2e"))
+
+print("The value is {:0,.2f}".format(x))
+
+# ,和.转换
+swap_separators = {ord("."): ",", ord(","): "."}
+print(format(x, ",").translate(swap_separators))
+
+print("%0.2f" % x)
+print("%10.1f" % x)
+print("%-10.1f" % x)
+
+#4 同二进制,八进制和十六进制数打交道
+x = 1234
+print(bin(x))
+print(oct(x))
+print(hex(x))
+
+# 不出现0x,0o和0b前缀
+print(format(x, "b"))
+print(format(x, "o"))
+print(format(x, "x"))
+
+x = -1234
+print(format(x, "b"))
+print(format(x, "o"))
+print(format(x, "x"))
+# 转为无符号数
+print(format(2**32 + x, "b"))
+print(format(2**32 + x, "o"))
+print(format(2**32 + x, "x"))
+
+print(int("4d2", 16))
+print(int("10011010010", 2))
+
+import os
+os.chmod("digit_date_time.py", 0o755)
+
+#5 从字符串中打包和解包大整数
+data = b"\x00\x124V\x00x\x90\xab\x00\xcd\xef\x01\x00#\x004"
+print(len(data))
+print(int.from_bytes(data, "little"))
+print(int.from_bytes(data, "big"))
+
+x = 94522842520747284487117727783387188
+print(x.to_bytes(16, "big"))
+print(x.to_bytes(16, "little"))
+
+# 解包
+import struct
+hi, lo = struct.unpack(">QQ", data)
+print((hi << 64) + lo)
+
+# 确认字节序是大端还是小端
+x = 0x01020304
+print(x.to_bytes(4, "big"))
+print(x.to_bytes(4, "little"))
+
+x = 523 ** 23
+print(x)
+# print(x.to_bytes(16, "little")) # error,字节太小
+print(x.bit_length())
+nbytes, rem = divmod(x.bit_length(), 8)
+if rem:
+	nbytes += 1
+print(x.to_bytes(nbytes, "little"))
+
+#6 复数运算
+a = complex(2, 4)
+b = 3 - 5j
+print(a)
+print(b)
+print(a.real)
+print(a.imag)
+print(a.conjugate())
+print(a + b)
+print(a - b)
+print(a * b)
+print(a / b)
+print(abs(a))
+
+import cmath
+print(cmath.sin(a))
+print(cmath.cos(a))
+print(cmath.exp(a))
+
+import numpy as np
+a = np.array([2 + 3j, 4 + 5j, 6 - 7j, 8 + 9j])
+print(a)
+print(a + 2)
+print(np.sin(a))
+
+# print(math.sqrt(-1)) # error
+print(cmath.sqrt(-1))
+
+#7 处理无穷大和NaN
+a = float("inf") # 正无穷大
+b = float("-inf") # 负无穷大
+c = float("nan") # not a number
+print(math.isinf(a))
+print(math.isinf(b))
+print(math.isnan(c))
+
+# 某些操作产生NaN,NaN会通过所有的操作进行传播,且不会引发任何异常
+print(a + 45)
+print(a / a)
+print(a + b)
+print(c + 23)
+print(c / 2)
+print(c * 2)
+print(math.sqrt(c))
+
+d = float("nan")
+print(c == d) # False
+
+#8 分数的计算
+from fractions import Fraction
+a = Fraction(5, 4)
+print(a)
+b = Fraction(7, 16)
+print(a + b)
+print(a * b)
+c = a * b
+print(c.numerator)
+print(c.denominator)
+print(float(c))
+
+# limit the denominator of a value
+print(c.limit_denominator(8))
+
+x = 3.75
+y = Fraction(*x.as_integer_ratio())
+print(y)
+
+#9 处理大型数组的计算
+# 对于任何涉及数组的计算密集型任务,请使用NumPy库.
+x = [1, 2, 3, 4]
+y = [5, 6, 7, 8]
+print(x * 2)
+# print(x + 10) # error
+print(x + y)
+
+ax = np.array([1, 2, 3, 4])
+ay = np.array([5, 6, 7, 8])
+print(ax * 2)
+print(ax + 10)
+print(ax + ay)
+
+def f(x):
+	return 3*x**2 - 2*x + 7
+print(f(ax))
+
+print(np.sqrt(ax))
+print(np.cos(ax))
+
+# 创建大型数组
+grid = np.zeros(shape=(1000, 10000), dtype=float)
+print(grid)
+print(grid + 10)
+print(np.sin(grid + 10))
+
+a = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+print(a)
+print(a[1])
+# select column 1
+print(a[:,1])
+# select subregion and change it
+print(a[1:3, 1:3])
+a[1:3, 1:3] += 10
+print(a)
+print(a + [100, 101, 102, 103])
+print(np.where(a < 10, a, 10))
+
+#10 矩阵和线性代数的计算
+m = np.matrix([[1, -2, 3], [0, 4, 5], [7, 8, -9]])
+print(m)
+# return transpose
+print(m.T)
+# return inverse
+print(m.I)
+
+v = np.matrix([[2], [3], [4]])
+print(v)
+print(m * v)
+
+import numpy.linalg
+# determinant
+print(numpy.linalg.det(m))
+# eigenvalues
+print(numpy.linalg.eigvals(m))
+# solve for x in mx = v
+x = numpy.linalg.solve(m, v)
+print(x)
+print(m * x)
+print(v)
+
+#11 随机选择
+import random
+values = [1, 2, 3, 4, 5, 6]
+print(random.choice(values))
+print(random.choice(values))
+print(random.choice(values))
+print(random.choice(values))
+print(random.choice(values))
+# 取样出N个元素
+print(random.sample(values, 2))
+print(random.sample(values, 2))
+print(random.sample(values, 3))
+print(random.sample(values, 3))
+
+random.shuffle(values)
+print(values)
+random.shuffle(values)
+print(values)
+
+print(random.randint(0, 10))
+print(random.randint(0, 10))
+print(random.randint(0, 10))
+print(random.randint(0, 10))
+print(random.randint(0, 10))
+
+print(random.random())
+print(random.random())
+print(random.random())
+print(random.random())
+
+# 得到由N个随机比特位所表示的整数
+print(random.getrandbits(200))
+
+# random模块采用马特塞特旋转算法,是确定算法,可以通过random.seed()函数
+# 来修改初始的种子值
+random.seed() # seed based on system time or os.urandom()
+random.seed(12345)
+random.seed(b"bytedata")
+
+#12 时间换算
+from datetime import timedelta # 时间间隔
+a = timedelta(days=2, hours=6)
+b = timedelta(hours=4.5)
+c = a + b
+print(c.days)
+print(c.seconds)
+print(c.seconds / 3600)
+print(c.total_seconds() / 3600)
+
+from datetime import datetime
+a = datetime(2016, 7, 1)
+print(a + timedelta(days=10))
+b = datetime(2016, 8, 8)
+d = b - a
+print(d.days)
+now = datetime.today()
+print(now)
+print(now + timedelta(minutes=10))
+
+# 处理闰年
+a = datetime(2016, 3, 1)
+b = datetime(2016, 2, 28)
+print(a - b)
+print((a - b).days)
+c = datetime(2017, 3, 1)
+d = datetime(2017, 2, 28)
+print((c - d).days)
+
+# 处理复杂日期问题
+a = datetime(2016, 9, 23)
+# print(a + timedelta(months=1)) error
+from dateutil.relativedelta import relativedelta
+print(a + relativedelta(months=+1))
+print(a + relativedelta(months=+4))
+# time between two dates
+b = datetime(2016, 12, 21)
+d = b - a
+print(d)
+d = relativedelta(b, a)
+print(d)
+print(d.months)
+print(d.days)
+
+#13 计算上周五的日期
