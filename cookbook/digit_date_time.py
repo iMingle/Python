@@ -342,3 +342,105 @@ print(d.months)
 print(d.days)
 
 #13 计算上周五的日期
+weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+def get_previous_byday(dayname, start_date=None):
+    if start_date is None:
+        start_date = datetime.today()
+    day_num = start_date.weekday()
+    day_num_target = weekdays.index(dayname)
+    days_ago = (7 + day_num - day_num_target) % 7
+    if days_ago == 0:
+        days_ago = 7
+    target_date = start_date - timedelta(days=days_ago)
+    return target_date
+print(datetime.today())
+print(get_previous_byday("Monday"))
+print(get_previous_byday("Tuesday"))
+print(get_previous_byday("Wednesday"))
+print(get_previous_byday("Friday"))
+print(get_previous_byday("Sunday"))
+
+from dateutil.rrule import *
+d = datetime.now()
+print(d)
+# next friday
+print(d + relativedelta(weekday=FR))
+# last friday
+print(d + relativedelta(weekday=FR(-1)))
+
+#14 计算当前月份的日期范围
+from datetime import date
+import calendar
+
+def get_month_range(start_date=None):
+    if start_date is None:
+        start_date = date.today().replace(day=1)
+    _, days_in_month = calendar.monthrange(start_date.year, start_date.month)
+    end_date = start_date + timedelta(days=days_in_month)
+    return (start_date, end_date)
+a_day = timedelta(days=1)
+first_day, last_day = get_month_range()
+while first_day < last_day:
+    print(first_day)
+    first_day += a_day
+
+def date_range(start, stop, step):
+    while start < stop:
+        yield start
+        start += step
+for d in date_range(datetime(2016, 9, 1), datetime(2016, 10, 1), timedelta(hours=6)):
+    print(d)
+
+#15 字符串转换为日期
+text = "2016-07-28"
+y = datetime.strptime(text, "%Y-%m-%d") # strptime性能比较差
+z = datetime.now()
+diff = z - y
+print(diff)
+# 日期转换为字符串
+nice_z = datetime.strftime(z, "%A %B %d, %Y")
+print(nice_z)
+
+def parse_ymd(s):
+    year, month, day = s.split("-")
+    return datetime(int(year), int(month), int(day))
+print(parse_ymd("2016-07-30"))
+
+#16 结合时区的日期操作
+# 对几乎所有涉及到时区的问题,你都应该使用pytz模块.这个包提供了Olson时
+# 区数据库,它是时区信息的事实上的标准,在很多语言和操作系统里面都可以找到.
+from pytz import timezone
+d = datetime(2016, 7, 27, 19, 30, 30)
+print(d)
+# Localize the date for Chicago
+central = timezone("US/Central")
+loc_d = central.localize(d)
+print(loc_d)
+# Convert to Bangalore time
+bang_d = loc_d.astimezone(timezone('Asia/Kolkata'))
+print(bang_d)
+d = datetime(2013, 3, 10, 1, 45)
+loc_d = central.localize(d)
+print(loc_d)
+later = loc_d + timedelta(minutes=30)
+print(later)
+later = central.normalize(loc_d + timedelta(minutes=30))
+print(later)
+
+# 为了不让你被这些东东弄的晕头转向,处理本地化日期的通常的策略先将所有日期
+# 转换为UTC时间,并用它来执行所有的中间存储和操作.
+print(loc_d)
+import pytz
+utc_d = loc_d.astimezone(pytz.utc)
+print(utc_d)
+later_utc = utc_d + timedelta(minutes=30)
+print(later_utc.astimezone(central))
+
+# 获取时区的名称
+print(pytz.country_timezones["CN"])
+
+# python 3.2 加入timezone
+from datetime import timezone
+d = datetime(2016, 7, 28, tzinfo=timezone.utc)
+print(d)
