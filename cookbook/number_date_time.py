@@ -1,4 +1,4 @@
-"""Digit date and time.
+"""Numbers, Dates, and Times.
 
 """
 

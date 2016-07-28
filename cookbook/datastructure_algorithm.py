@@ -1,4 +1,4 @@
-"""Data structure and algorithm
+"""Data Structures and Algorithms.
 
 """
 

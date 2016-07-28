@@ -1,4 +1,4 @@
-"""String and text processing.
+"""Strings and Text.
 
 """
 
