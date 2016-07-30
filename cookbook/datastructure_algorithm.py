@@ -91,7 +91,7 @@ def search(lines, pattern, history=5):
         previous_lines.append(line)
 
 if __name__ == "__main__":
-    with open("somefile.txt") as f:
+    with open("data/somefile.txt") as f:
         for line, prevlines in search(f, "python", 5):
             for pline in prevlines:
                 print(pline, end = "")

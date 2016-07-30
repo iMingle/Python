@@ -7,7 +7,7 @@ line = "mingle:26:jinminglei@yeah.net"
 split = line.split(":")
 print(split)
 
-import re # 正则表达式 
+import re # 正则表达式
 
 line = "asdf fjdk; afed, fjek,asdf,      foo"
 resplit = re.split(r"[;,\s]\s*", line)

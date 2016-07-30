@@ -4,7 +4,7 @@
 
 #1 手动遍历迭代器
 def manual_iter():
-    with open("somefile.txt") as f:
+    with open("data/somefile.txt") as f:
         try:
             while True:
                 line = next(f)
@@ -14,7 +14,7 @@ def manual_iter():
 manual_iter()
 
 def manual_iter_new():
-    with open("somefile.txt") as f:
+    with open("data/somefile.txt") as f:
             while True:
                 line = next(f, None)
                 if line is None:
@@ -175,7 +175,7 @@ a = [1, 2, 3, 4]
 for x in reversed(a):
     print(x)
 
-f = open("somefile.txt")
+f = open("data/somefile.txt")
 for line in reversed(list(f)):
     print(line, end="")
 
@@ -210,7 +210,7 @@ class linehistory:
 
     def clear(self):
         self.history.clear()
-with open("somefile.txt") as f:
+with open("data/somefile.txt") as f:
     lines = linehistory(f)
     print(lines)
     for line in lines:
@@ -231,7 +231,7 @@ for x in itertools.islice(c, 10, 20):
 
 #8 跳过可迭代对象中的前一部分元素
 from itertools import dropwhile, islice
-with open("somefile.txt") as f:
+with open("data/somefile.txt") as f:
     for line in dropwhile(lambda line: line.startswith("="), f):
         print(line, end="")
 
@@ -274,11 +274,11 @@ def parse_data(filename):
                 count = int(fields[1])
             except ValueError as e:
                 print("Line {}: Parse error: {}".format(lineno, e))
-# parse_data("somefile.txt")
+# parse_data("data/somefile.txt")
 
 from collections import defaultdict
 word_summary = defaultdict(list)
-with open("somefile.txt") as f:
+with open("data/somefile.txt") as f:
     lines = f.readlines()
 for idx, line in enumerate(lines):
     words = [w.strip().lower() for w in line.split()]
@@ -415,6 +415,6 @@ def reader_iter(s):
         process_data(data)
 
 import sys
-f = open("somefile.txt")
+f = open("data/somefile.txt")
 for chunk in iter(lambda: f.read(10), ""):
     n = sys.stdout.write(chunk)

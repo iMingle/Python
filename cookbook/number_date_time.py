@@ -98,7 +98,7 @@ print(int("4d2", 16))
 print(int("10011010010", 2))
 
 import os
-os.chmod("digit_date_time.py", 0o755)
+os.chmod("number_date_time.py", 0o755)
 
 #5 从字符串中打包和解包大整数
 data = b"\x00\x124V\x00x\x90\xab\x00\xcd\xef\x01\x00#\x004"
