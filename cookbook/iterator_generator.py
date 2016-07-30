@@ -322,3 +322,99 @@ for item in chain(active_items, inactive_items):
     print(item)
 
 #13 创建处理数据的管道
+import os
+import fnmatch
+import gzip
+import bz2
+import re
+
+def gen_find(filepat, top):
+    """find all filenames in a directory tree that match a shell wildcard pattern."""
+    for dirpath, dirnames, filenames in os.walk(top):
+        for name in fnmatch.filter(filenames, filepat):
+            yield os.path.join(dirpath, name)
+
+def gen_opener(filenames):
+    """open a sequence of filenames one at a time producing a file object.
+    the file is closed immediately when proceeding to the next iteration.
+    """
+    for filename in filenames:
+        if filename.endswith(".gz"):
+            f = gzip.open(filename, "rt")
+        elif filename.endswith(".bz2"):
+            f = bz2.open(filename, "rt")
+        else:
+            f = open(filename, "rt")
+        yield f
+        f.close()
+
+def gen_concatenate(iterators):
+    """chain a sequence of iterators together into a single sequence."""
+    for it in iterators:
+        yield from it
+
+def gen_grep(pattern, lines):
+    """look for a regex pattern in a sequence of lines"""
+    pat = re.compile(pattern)
+    for line in lines:
+        if pat.search(line):
+            yield line
+if __name__ == "__main__":
+    lognames = gen_find("access-log*", "log")
+    files = gen_opener(lognames)
+    lines = gen_concatenate(files)
+    pylines = gen_grep("(?i)python", lines) # ignore case
+    for line in pylines:
+        print(line)
+    # 统计总字节量
+    lognames = gen_find("access-log*", "log")
+    files = gen_opener(lognames)
+    lines = gen_concatenate(files)
+    pylines = gen_grep("(?i)python", lines)
+    bytecolumn = (line.rsplit(None, 1)[1] for line in pylines)
+    bytesTuple = (int(x) for x in bytecolumn if x != "-")
+    print("Total", sum(bytesTuple))
+
+#14 扁平化处理嵌套型的序列
+from collections import Iterable
+
+def flatten(items, ignore_types=(str, bytes)):
+    for x in items:
+        if isinstance(x, Iterable) and not isinstance(x, ignore_types):
+            yield from flatten(x)
+        else:
+            yield x
+
+items = [1, 2, [3, 4, [5, 6], 7], 8]
+for x in flatten(items):
+    print(x)
+items = ['Dave', 'Paula', ['Thomas', 'Lewis']]
+for x in flatten(items):
+    print(x)
+
+#15 合并多个有序序列,再对整个有序序列进行迭代
+import heapq
+a = [1, 4, 7, 10]
+b = [2, 5, 6, 11]
+# heapq.merge()要求所有的输入序列是有序的
+for c in heapq.merge(a, b):
+    print(c)
+
+#16 用迭代器取代while循环
+CHUNKSIZE = 8192
+
+def reader(s):
+    while True:
+        data = s.recv(CHUNKSIZE)
+        if b"" == data:
+            break
+        process_data(data)
+
+def reader_iter(s):
+    for chunk in iter(lambda: s.recv(CHUNKSIZE), b""):
+        process_data(data)
+
+import sys
+f = open("somefile.txt")
+for chunk in iter(lambda: f.read(10), ""):
+    n = sys.stdout.write(chunk)
