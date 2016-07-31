@@ -215,6 +215,21 @@ def parse_and_remove(filename, path):
                 elem_stack.pop()
             except IndexError:
                 pass
+from collections import Counter
+potholes_by_zip = Counter()
+doc = parse("data/potholes.xml")
+for pothole in doc.iterfind("row/row"):
+    potholes_by_zip[pothole.findtext("zip")] += 1
+for zipcode, num in potholes_by_zip.most_common():
+    print(zipcode, num)
+
+# 占用内存小的方式
+data = parse_and_remove("data/potholes.xml", "row/row")
+potholes_by_zip = Counter()
+for pothole in data:
+    potholes_by_zip[pothole.findtext("zip")] += 1
+for zipcode, num in potholes_by_zip.most_common():
+    print(zipcode, num)
 
 #5 将字典转换为XML
 from xml.etree.ElementTree import Element
@@ -320,3 +335,354 @@ for row in db.execute("select * from portfoio where price >= ?", (min_price,)):
     print(row)
 
 #9 编码和解码十六进制数字
+s = b"hello"
+import binascii
+h = binascii.b2a_hex(s)
+print(h)
+print(binascii.a2b_hex(h))
+
+import base64
+h = base64.b16encode(s)
+print(h)
+print(base64.b16decode(h))
+
+#10 Base64编码和解码
+# Base64编码对二进制数据做编码解码操作
+s = b"hello"
+a = base64.b64encode(s)
+print(a)
+print(base64.b64decode(a))
+a = base64.b64encode(s).decode("ascii")
+print(a)
+
+#11 读写二进制结构的数组
+from struct import Struct
+
+def write_records(records, format, f):
+    """write a sequence of tuples to a binary file of structures."""
+    record_struct = Struct(format)
+    for r in records:
+        f.write(record_struct.pack(*r))
+if "__main__" == __name__:
+    records = [
+        (1, 2.3, 4.5),
+        (6, 7.8, 9.0),
+        (12, 13.4, 56.7)
+    ]
+    with open("data/data.b", "wb") as f:
+        write_records(records, "<idd", f)
+
+def read_records(format, f):
+    record_struct = Struct(format)
+    chunks = iter(lambda: f.read(record_struct.size), b"")
+    return (record_struct.unpack(chunk) for chunk in chunks)
+if "__main__" == __name__:
+    with open("data/data.b", "rb") as f:
+        for rec in read_records("<idd", f):
+            print(rec)
+
+# 将文件全部读取到一个字节串中
+def unpack_records(format, data):
+    record_struct = Struct(format)
+    return (record_struct.unpack_from(data, offset) for offset in range(0, len(data), record_struct.size))
+if "__main__" == __name__:
+    with open("data/data.b", "rb") as f:
+        data = f.read()
+        for rec in unpack_records("<idd", data):
+            print(rec)
+
+record_struct = Struct("<idd")
+print(record_struct.size)
+a = record_struct.pack(1, 2.0, 3.0)
+print(a)
+print(record_struct.unpack(a))
+
+import struct
+a = struct.pack("<idd", 1, 2.0, 3.0)
+print(a)
+print(struct.unpack("<idd", a))
+
+f = open("data/data.b", "rb")
+chunks = iter(lambda: f.read(20), b"")
+for chk in chunks:
+    print(chk)
+
+from collections import namedtuple
+
+record = namedtuple("record", ["kind", "x", "y"])
+with open("data/data.b", "rb") as f:
+    records = (record(*r) for r in read_records("<idd", f))
+    for r in records:
+        print(r.kind, r.x, r.y)
+
+import numpy as np
+f = open("data/data.b", "rb")
+records = np.fromfile(f, dtype="<i,<d,<d")
+print(records)
+print(records[0])
+print(records[1])
+
+#12 读取嵌套型和大小可变的二进制结构
+import struct
+import itertools
+
+polys = [
+        [ (1.0, 2.5), (3.5, 4.0), (2.5, 1.5) ],
+        [ (7.0, 1.2), (5.1, 3.0), (0.5, 7.5), (0.8, 9.0) ],
+        [ (3.4, 6.3), (1.2, 0.5), (4.6, 9.2) ],
+    ]
+
+def write_polys(filename, polys):
+    """determine bounding box"""
+    flattened = list(itertools.chain(*polys))
+    min_x = min(x for x, y in flattened)
+    max_x = max(x for x, y in flattened)
+    min_y = min(y for x, y in flattened)
+    max_y = max(y for x, y in flattened)
+
+    with open(filename, "wb") as f:
+        f.write(struct.pack("<iddddi", 0x1234, min_x, min_y, max_x, max_y, len(polys)))
+        for poly in polys:
+            size = len(poly) * struct.calcsize("<dd")
+            f.write(struct.pack("<i", size+4))
+            for pt in poly:
+                f.write(struct.pack("<dd", *pt))
+write_polys("data/polys.bin", polys)
+
+def read_polys(filename):
+    with open("data/polys.bin", "rb") as f:
+        # read the header
+        header = f.read(40)
+        file_code, min_x, min_y, max_x, max_y, num_polys = struct.unpack("<iddddi", header)
+        polys = []
+        for n in range(num_polys):
+            pbytes, = struct.unpack("<i", f.read(4))
+            poly = []
+            for m in range(pbytes // 16):
+                pt = struct.unpack("<dd", f.read(16))
+                poly.append(pt)
+            polys.append(poly)
+    return polys
+polys = read_polys("data/polys.bin")
+print(polys)
+
+# 高级解决方案
+class StructField:
+    """descriptor representing a simple structure field"""
+    def __init__(self, format, offset):
+        super(StructField, self).__init__()
+        self.format = format
+        self.offset = offset
+
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self
+        else:
+            r = struct.unpack_from(self.format, instance._buffer, self.offset)
+            return r[0] if len(r) == 1 else r
+
+class Structure():
+    def __init__(self, bytedata):
+        super(Structure, self).__init__()
+        self._buffer = memoryview(bytedata)
+
+if __name__ == "__main__":
+    class PolyHeader(Structure):
+        file_code = StructField("<i", 0)
+        min_x = StructField("<d", 4)
+        min_y = StructField("<d", 12)
+        max_x = StructField("<d", 20)
+        max_y = StructField("<d", 28)
+        num_polys = StructField("<i", 36)
+
+    f = open("data/polys.bin", "rb")
+    data = f.read()
+    
+    phead = PolyHeader(data)
+    print(phead.file_code == 0x1234)
+    print("min_x=", phead.min_x)
+    print("max_x=", phead.max_x)
+    print("min_y=", phead.min_y)
+    print("max_y=", phead.max_y)
+    print("num_polys=", phead.num_polys)
+
+class StructureMeta(type):
+    """Metaclass that automatically creates StructField descriptos."""
+    def __init__(self, clsname, bases, clsdict):
+        fields = getattr(self, "_fields_", [])
+        byte_order = ""
+        offset = 0
+        for format, fieldname in fields:
+            if format.startswith(("<", ">", "!", "@")):
+                byte_order = format[0]
+                format = format[1:]
+            format = byte_order + format
+            setattr(self, fieldname, StructField(format, offset))
+            offset += struct.calcsize(format)
+        setattr(self, "struct_size", offset)
+
+class Structure(metaclass=StructureMeta):
+    def __init__(self, bytedata):
+        super(Structure, self).__init__()
+        self._buffer = bytedata
+
+    @classmethod
+    def from_file(cls, f):
+        return cls(f.read(cls.struct_size))
+if __name__ == "__main__":
+    class PolyHeader(Structure):
+        _fields_ = [
+            ("<i", "file_code"),
+            ("d", "min_x"),
+            ("d", "min_y"),
+            ("d", "max_x"),
+            ("d", "max_y"),
+            ("i", "num_polys")
+        ]
+
+    f = open("data/polys.bin", "rb")
+    phead = PolyHeader.from_file(f)
+    print(phead.file_code == 0x1234)
+    print("min_x=", phead.min_x)
+    print("max_x=", phead.max_x)
+    print("min_y=", phead.min_y)
+    print("max_y=", phead.max_y)
+    print("num_polys=", phead.num_polys)
+
+class NestedStruct:
+    """descriptor representing a nested structure"""
+    def __init__(self, name, struct_type, offset):
+        self.name = name
+        self.struct_type = struct_type
+        self.offset = offset
+
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self
+        else:
+            data = instance._buffer[self.offset:self.offset+self.struct_type.struct_size]
+            result = self.struct_type(data)
+            setattr(instance, self.name, result)
+            return result
+
+class StructureMeta(type):
+    "metaclass that automatically creates StructField descriptors"
+    def __init__(self, clsname, bases, clsdict):
+        fields = getattr(self, "_fields_", [])
+        byte_order = ""
+        offset = 0
+        for format, fieldname in fields:
+            if isinstance(format, StructureMeta):
+                setattr(self, fieldname, NestedStruct(fieldname, format, offset))
+                offset += format.struct_size
+            else:
+                if format.startswith(("<", ">", "!", "@")):
+                    byte_order = format[0]
+                    format = format[1:]
+                format = byte_order + format
+                setattr(self, fieldname, StructField(format, offset))
+                offset += struct.calcsize(format)
+        setattr(self, "struct_size", offset)
+
+class Structure(metaclass=StructureMeta):
+    def __init__(self, bytedata):
+        self._buffer = memoryview(bytedata)
+
+    @classmethod
+    def from_file(cls, f):
+        return cls(f.read(cls.struct_size))
+
+if __name__ == "__main__":
+    class Point(Structure):
+        _fields_ = [
+            ("<d", "x"),
+            ("d", "y")
+        ]
+
+    class PolyHeader(Structure):
+        _fields_ = [
+            ("<i", "file_code"),
+            (Point, "min"),
+            (Point, "max"),
+            ("i", "num_polys")
+        ]
+
+    f = open("data/polys.bin", "rb")
+    phead = PolyHeader.from_file(f)
+    print(phead.file_code == 0x1234)
+    print("min.x=", phead.min.x)
+    print("max.x=", phead.max.x)
+    print("min.y=", phead.min.y)
+    print("max.y=", phead.max.y)
+    print("num_polys=", phead.num_polys)
+
+class SizedRecord:
+    def __init__(self, bytedata):
+        self._buffer = memoryview(bytedata)
+
+    @classmethod
+    def from_file(cls, f, size_fmt, includes_size=True):
+        sz_nbytes = struct.calcsize(size_fmt)
+        sz_bytes = f.read(sz_nbytes)
+        sz, = struct.unpack(size_fmt, sz_bytes)
+        buf = f.read(sz - includes_size * sz_nbytes)
+        return cls(buf)
+
+    def iter_as(self, code):
+        if isinstance(code, str):
+            s = struct.Struct(code)
+            for off in range(0, len(self._buffer), s.size):
+                yield s.unpack_from(self._buffer, off)
+        elif isinstance(code, StructureMeta):
+            size = code.struct_size
+            for off in range(0, len(self._buffer), size):
+                data = self._buffer[off:off+size]
+                yield code(data)
+if __name__ == "__main__":
+    class Point(Structure):
+        _fields_ = [
+            ("<d", "x"),
+            ("d", "y")
+        ]
+
+    class PolyHeader(Structure):
+        _fields_ = [
+            ("<i", "file_code"),
+            (Point, "min"),
+            (Point, "max"),
+            ("i", "num_polys")
+        ]
+
+    def read_polys(filename):
+        polys = []
+        with open(filename, "rb") as f:
+            phead = PolyHeader.from_file(f)
+            for n in range(phead.num_polys):
+                rec = SizedRecord.from_file(f, "<i")
+                poly = [ (p.x, p.y) for p in rec.iter_as(Point) ]
+                polys.append(poly)
+        return polys
+
+    polys = read_polys("data/polys.bin")
+    print(polys)
+
+#13 数据汇总和统计
+import pandas
+rats = pandas.read_csv("data/rats.csv", skip_footer=1)
+print(rats)
+# investigate range of values for a certain field
+print(rats["Current Activity"].unique())
+# filter the data
+crew_dispatched = rats[rats["Current Activity"] == "Dispatch Crew"]
+print(len(crew_dispatched))
+# find 10 most rat-infested ZIP codes in Chicago
+# print(crew_dispatched["ZIP Code"].value_counts()[0:10])
+# group by completion date
+dates = crew_dispatched.groupby("Completion Date")
+print(len(dates))
+# determine counts on each day
+date_counts = dates.size()
+print(date_counts[0:10])
+# sort the counts
+date_counts.sort()
+print(date_counts[-10:0])
