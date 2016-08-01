@@ -462,6 +462,7 @@ print(s.shares)
 print(s.price)
 
 #10 让属性具有惰性求值的能力
+# 只有当被访问的属性不在底层的实例字典中时,__get__()方法才会得到调用
 class lazyproperty:
     """延迟属性描述器"""
     def __init__(self, func):
@@ -470,12 +471,9 @@ class lazyproperty:
     
     def __get__(self, instance, cls):
         if instance is None:
-            print("if")
-            print(self)
             return self
         else:
             value = self.func(instance)
-            print(self.func)
             setattr(instance, self.func.__name__, value)
             return value
 
@@ -486,12 +484,12 @@ class Circle:
 
     @lazyproperty
     def area(self):
-        print('computing area')
+        print("computing area")
         return math.pi * self.radius ** 2
 
     @lazyproperty
     def perimeter(self):
-        print('computing perimeter')
+        print("computing perimeter")
         return 2 * math.pi * self.radius
 
 c = Circle(4.0)
@@ -501,3 +499,240 @@ print(c.area)
 print(c.perimeter)
 print(c.perimeter)
 
+c = Circle(4.0)
+print(vars(c))
+print(Circle.__dict__)
+print(c.__dict__)
+print(c.area)
+print(vars(c))
+print(c.area)
+del c.area
+print(vars(c))
+print(c.area)
+# 缺点,值可变
+c.area = 25
+print(c.area)
+
+# 不可变实现
+def lazyproperty(func):
+    """延迟属性描述器,属性不可变,但执行效率会稍打折扣"""
+    name = "_lazy_" + func.__name__
+    @property
+    def lazy(self):
+        if hasattr(self, name):
+            return getattr(self, name)
+        else:
+            value = func(self)
+            setattr(self, name, value)
+            return value
+    return lazy
+
+class Circle:
+    def __init__(self, radius):
+        super(Circle, self).__init__()
+        self.radius = radius
+
+    @lazyproperty
+    def area(self):
+        print("computing area")
+        return math.pi * self.radius ** 2
+
+    @lazyproperty
+    def perimeter(self):
+        print("computing perimeter")
+        return 2 * math.pi * self.radius
+
+c = Circle(4.0)
+print(c.area)
+print(c.area)
+# c.area = 25 # AttributeError: can't set attribute
+
+#11 简化数据结构的初始化过程
+class Structure:
+    # class variable that specifies expected fields
+    _fields = []
+    def __init__(self, *args):
+        if len(args) != len(self._fields):
+            raise TypeError("expected {} arguments".format(len(self._fields)))
+        # set the arguments
+        for name, value in zip(self._fields, args):
+            setattr(self, name, value)
+
+if "__main__" == __name__:
+    class Stock(Structure):
+        _fields = ["name", "shares", "price"]
+
+    class Point(Structure):
+        _fields = ["x", "y"]
+
+    class Circle(Structure):
+        _fields = ["radius"]
+
+        def area(self):
+            return math.pi * self.radius ** 2
+
+    s = Stock("ACME", 50, 90.1)
+    p = Point(2, 3)
+    c = Circle(4.5)
+    try:
+        s2 = Stock("ACME", 50)
+    except TypeError as e:
+        print(e)
+
+# 支持关键字映射
+class Structure:
+    # class variable that specifies expected fields
+    _fields = []
+    def __init__(self, *args, **kwargs):
+        if len(args) > len(self._fields):
+            raise TypeError("expected {} arguments".format(len(self._fields)))
+        # set all of the positional arguments
+        for name, value in zip(self._fields, args):
+            setattr(self, name, value)
+        # set the remaining keyword arguments
+        for name in self._fields[len(args):]:
+            setattr(self, name, kwargs.pop(name))
+        # check for any remaining unknown arguments
+        if kwargs:
+            raise TypeError("invalid arguments(s): {}".format(",".join(kwargs)))
+
+if "__main__" == __name__:
+    class Stock(Structure):
+        _fields = ["name", "shares", "price"]
+
+    s1 = Stock("ACME", 50, 90.1)
+    s2 = Stock("ACME", 50, price=90.1)
+    s3 = Stock("ACME", shares=50, price=90.1)
+
+# 利用关键字参数来给类添加额外的属性
+class Structure:
+    # class variable that specifies expected fields
+    _fields= []
+    def __init__(self, *args, **kwargs):
+        if len(args) != len(self._fields):
+            raise TypeError("Expected {} arguments".format(len(self._fields)))
+       
+        # set the arguments
+        for name, value in zip(self._fields, args):
+            setattr(self, name, value)
+
+        # set the additional arguments (if any)
+        extra_args = kwargs.keys() - self._fields
+        for name in extra_args:
+            setattr(self, name, kwargs.pop(name))
+
+        if kwargs:
+            raise TypeError("duplicate values for {}".format(",".join(kwargs)))
+
+if "__main__" == __name__:
+    class Stock(Structure):
+        _fields = ["name", "shares", "price"]
+
+    s1 = Stock("ACME", 50, 91.1)
+    s2 = Stock("ACME", 50, 91.1, date="8/2/2012")
+
+#12 定义一个接口或抽象基类
+# 要定义一个抽象基类,可以使用abc模块
+from abc import ABCMeta, abstractmethod
+
+class IStream(metaclass=ABCMeta):
+    @abstractmethod
+    def read(self, maxbytes=-1):
+        pass
+
+    @abstractmethod
+    def write(self, data):
+        pass
+
+# a = IStream() # TypeError: Can't instantiate abstract class IStream with abstract methods read, write
+
+class SocketStream(IStream):
+    def read(self, maxbytes=-1):
+        pass
+
+    def write(self, data):
+        pass
+
+# 检查接口
+def serialize(obj, stream):
+    if not isinstance(stream, IStream):
+        raise TypeError("expected an IStream")
+
+# 抽象基类允许其他的类向其注册,然后实现所需的接口
+import io
+
+# register the built-in I/O classes as supporting our interface
+IStream.register(io.IOBase)
+# open a normal file and type check
+f = open("data/somefile.txt")
+print(isinstance(f, IStream))
+
+# @abstractmethod同样可以施加到静态方法,类方法和property属性上,
+# 只要确保以合适的顺序进行添加即可.
+class A(metaclass=ABCMeta):
+    @property
+    @abstractmethod
+    def name(self):
+        pass
+
+    @name.setter
+    @abstractmethod
+    def name(self, value):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def method1(cls):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def method2():
+        pass
+
+    def method3(self):
+        print("method3")
+
+class B(A):
+    def name(self):
+        print("name")
+
+    def name(self, value):
+        print("name.setter")
+
+    def method1(cls):
+        print("method1")
+
+    def method2():
+        print("method2")
+        
+b = B()
+b.method3()
+
+import collections
+
+x = [1, 2, 3, 4]
+if isinstance(x, collections.Sequence):
+    print("x is collections.Sequence")
+if isinstance(x, collections.Iterable):
+    print("x is collections.Iterable")
+if isinstance(x, collections.Sized):
+    print("x is collections.Sized")
+if isinstance(x, collections.Mapping):
+    print("x is collections.Mapping")
+
+from decimal import Decimal
+import numbers
+
+x = Decimal("3.4")
+print(isinstance(x, numbers.Real)) # False
+
+#13 实现一种数据模型或类型系统
+
+#14 实现自定义的容器
+
+#15 委托属性的访问
+
+#16 在类中定义多个构造函数
+
+#17 不通过调用init来创建实例
