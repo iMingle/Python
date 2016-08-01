@@ -462,3 +462,42 @@ print(s.shares)
 print(s.price)
 
 #10 让属性具有惰性求值的能力
+class lazyproperty:
+    """延迟属性描述器"""
+    def __init__(self, func):
+        super(lazyproperty, self).__init__()
+        self.func = func
+    
+    def __get__(self, instance, cls):
+        if instance is None:
+            print("if")
+            print(self)
+            return self
+        else:
+            value = self.func(instance)
+            print(self.func)
+            setattr(instance, self.func.__name__, value)
+            return value
+
+class Circle:
+    def __init__(self, radius):
+        super(Circle, self).__init__()
+        self.radius = radius
+
+    @lazyproperty
+    def area(self):
+        print('computing area')
+        return math.pi * self.radius ** 2
+
+    @lazyproperty
+    def perimeter(self):
+        print('computing perimeter')
+        return 2 * math.pi * self.radius
+
+c = Circle(4.0)
+print(c.radius)
+print(c.area)
+print(c.area)
+print(c.perimeter)
+print(c.perimeter)
+
