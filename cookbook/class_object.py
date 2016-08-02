@@ -728,11 +728,456 @@ x = Decimal("3.4")
 print(isinstance(x, numbers.Real)) # False
 
 #13 实现一种数据模型或类型系统
+class Descriptor(object):
+    """base class. uses a descriptor to set a value"""
+    def __init__(self, name=None, **opts):
+        super(Descriptor, self).__init__()
+        self.name = name
+        for key, value in opts.items():
+            setattr(self, key, value)
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.name] = value
+
+class Typed(Descriptor):
+    """descriptor for enforcing types"""
+    expected_type = type(None)
+
+    def __set__(self, instance, value):
+        if not isinstance(value, self.expected_type):
+            raise TypeError("expected " + str(self.expected_type))
+        super().__set__(instance, value)
+
+class Unsigned(Descriptor):
+    """descriptor for enforcing values"""
+    def __set__(self, instance, value):
+        if value < 0:
+            raise ValueError("expected >= 0")
+        super().__set__(instance, value)
+
+class MaxSized(Descriptor):
+    def __init__(self, name=None, **opts):
+        if "size" not in opts:
+            raise TypeError("missing size option")
+        super().__init__(name, **opts)
+    
+    def __set__(self, instance, value):
+        if len(value) >= self.size:
+            raise ValueError("size must be < " + str(self.size))
+        super().__set__(instance, value)
+
+class Integer(Typed):
+    expected_type = int
+
+class UnsignedInteger(Integer, Unsigned):
+    pass
+
+class Float(Typed):
+    expected_type = float
+
+class UnsignedFloat(Float, Unsigned):
+    pass
+
+class String(Typed):
+    expected_type = str
+
+class SizedString(String, MaxSized):
+    pass
+
+def test(s):
+    """testing code"""
+    print(s.name)
+    s.shares = 75
+    print(s.shares)
+    try:
+        s.shares = -10
+    except ValueError as e:
+        print(e)
+    try:
+        s.price = "a lot"
+    except TypeError as e:
+        print(e)
+
+    try:
+        s.name = "ABRACADABRA"
+    except ValueError as e:
+        print(e)
+
+if "__main__" == __name__:
+    class Stock:
+        # specify constraints
+        name = SizedString("name", size=8)
+        shares = UnsignedInteger("shares")
+        price = UnsignedFloat("price")
+
+        def __init__(self, name, shares, price):
+            super(Stock, self).__init__()
+            self.name = name
+            self.shares = shares
+            self.price = price
+    s = Stock("ACME", 50, 90.1)
+    test(s)
+
+# 简化在类中设定约束的步骤
+def check_attributes(**kwargs):
+    """class decorator to apply constraints"""
+    def decorate(cls):
+        for key, value in kwargs.items():
+            if isinstance(value, Descriptor):
+                value.name = key
+                setattr(cls, key, value)
+            else:
+                setattr(cls, key, value(key))
+        return cls
+    return decorate
+
+if "__main__" == __name__:
+    @check_attributes(name=SizedString(size=8),
+        shares=UnsignedInteger,
+        price=UnsignedFloat)
+    class Stock:
+        def __init__(self, name, shares, price):
+            super(Stock, self).__init__()
+            self.name = name
+            self.shares = shares
+            self.price = price
+    s = Stock("ACME", 50, 90.1)
+    test(s)
+
+# 使用元类检查
+class checkedmeta(type):
+    def __new__(cls, clsname, bases, methods):
+        # attach attribute names to the descriptors
+        for key, value in methods.items():
+            if isinstance(value, Descriptor):
+                value.name = key
+        return type.__new__(cls, clsname, bases, methods)
+
+if "__main__" == __name__:
+    class Stock(metaclass=checkedmeta):
+        name = SizedString(size=8)
+        shares = UnsignedInteger()
+        price = UnsignedFloat()
+
+        def __init__(self, name, shares, price):
+            super(Stock, self).__init__()
+            self.name = name
+            self.shares = shares
+            self.price = price
+    s = Stock("ACME", 50, 90.1)
+    test(s)
+
+# 使用类装饰器的备选方案,执行速度快
+class Descriptor:
+    def __init__(self, name=None, **opts):
+        self.name = name
+        self.__dict__.update(opts)
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.name] = value
+
+def Typed(expected_type, cls=None):
+    if cls is None:
+        return lambda cls: Typed(expected_type, cls)
+
+    super_set = cls.__set__
+    def __set__(self, instance, value):
+        if not isinstance(value, expected_type):
+            raise TypeError("expected " + str(expected_type))
+        super_set(self, instance, value)
+    cls.__set__ = __set__
+    return cls
+
+def Unsigned(cls):
+    super_set = cls.__set__
+    def __set__(self, instance, value):
+        if value < 0:
+            raise ValueError("expected >= 0")
+        super_set(self, instance, value)
+    cls.__set__ = __set__
+    return cls
+
+def MaxSized(cls):
+    super_init = cls.__init__
+    def __init__(self, name=None, **opts):
+        if "size" not in opts:
+            raise TypeError("missing size option")
+        self.size = opts["size"]
+        super_init(self, name, **opts)
+    cls.__init__ = __init__
+
+    super_set = cls.__set__
+    def __set__(self, instance, value):
+        if len(value) >= self.size:
+            raise ValueError("size must be < " + str(self.size))
+        super_set(self, instance, value)
+    cls.__set__ = __set__
+    return cls
+
+@Typed(int)
+class Integer(Descriptor):
+    pass
+
+@Unsigned
+class UnsignedInteger(Integer):
+    pass
+
+@Typed(float)
+class Float(Descriptor):
+    pass
+
+@Unsigned
+class UnsignedFloat(Float):
+    pass
+
+@Typed(str)
+class String(Descriptor):
+    pass
+
+@MaxSized
+class SizedString(String):
+    pass
+
+def check_attributes(**kwargs):
+    """class decorator to apply constraints"""
+    def decorate(cls):
+        for key, value in kwargs.items():
+            if isinstance(value, Descriptor):
+                value.name = key
+                setattr(cls, key, value)
+            else:
+                setattr(cls, key, value(key))
+        return cls
+    return decorate
+
+class checkedmeta(type):
+    """a metaclass that applies checking"""
+    def __new__(cls, clsname, bases, methods):
+        # attach attribute names to the descriptors
+        for key, value in methods.items():
+            if isinstance(value, Descriptor):
+                value.name = key
+        return type.__new__(cls, clsname, bases, methods)
+
+if __name__ == "__main__":
+    print("# --- Class with descriptors")
+    class Stock:
+        # Specify constraints
+        name = SizedString("name", size=8)
+        shares = UnsignedInteger("shares")
+        price = UnsignedFloat("price")
+        def __init__(self, name, shares, price):
+            self.name = name
+            self.shares = shares
+            self.price = price
+
+    s = Stock("ACME", 50, 91.1)
+    test(s)
+
+    print("# --- Class with class decorator")
+    @check_attributes(name=SizedString(size=8), 
+                      shares=UnsignedInteger,
+                      price=UnsignedFloat)
+    class Stock:
+        def __init__(self, name, shares, price):
+            self.name = name
+            self.shares = shares
+            self.price = price
+
+    s = Stock("ACME", 50, 91.1)
+    test(s)
+
+    print("# --- Class with metaclass")
+    class Stock(metaclass=checkedmeta):
+        name = SizedString(size=8)
+        shares = UnsignedInteger()
+        price = UnsignedFloat()
+        def __init__(self, name, shares, price):
+            self.name = name
+            self.shares = shares
+            self.price = price
+
+    s = Stock("ACME", 50, 91.1)
+    test(s)
 
 #14 实现自定义的容器
+import collections
+
+class A(collections.Iterable):
+    def __iter__(self):
+        pass
+a = A()
+
+# collections.Sequence() # TypeError: Can't instantiate abstract class Sequence 
+                       # with abstract methods __getitem__, __len__
+
+import bisect
+
+class SortedItems(collections.Sequence):
+    """排序列表"""
+    def __init__(self, initial=None):
+        self._items = sorted(initial) if initial is not None else []
+
+    # required sequence methods
+    def __getitem__(self, index):
+        return self._items[index]
+
+    def __len__(self):
+        return len(self._items)
+
+    # method for adding an item in the right location
+    def add(self, item):
+        bisect.insort(self._items, item)
+
+items = SortedItems([5, 1, 3])
+print(list(items))
+print(items[0])
+print(items[-1])
+items.add(2)
+print(list(items))
+items.add(-10)
+print(list(items))
+print(items[1:4])
+print(3 in items)
+print(len(items))
+for n in items:
+    print(n)
+
+class Items(collections.MutableSequence):
+    def __init__(self, initial=None):
+        self._items = list(initial) if initial is not None else []
+
+    # required sequence methods
+    def __getitem__(self, index):
+        print("Getting:", index)
+        return self._items[index]
+
+    def __setitem__(self, index, value):
+        print("Setting:", index, value)
+        self._items[index] = value
+
+    def __delitem__(self, index):
+        print("Deleting:", index)
+        del self._items[index]
+
+    def insert(self, index, value):
+        print("Inserting:", index, value)
+        self._items.insert(index, value)
+
+    def __len__(self):
+        print("Len")
+        return len(self._items)
+
+if "__main__" == __name__:
+    a = Items([1, 2, 3])
+    print(len(a))
+    a.append(4)
+    a.append(2)
+    print(a.count(2))
+    a.remove(3)
 
 #15 委托属性的访问
+class A:
+    def spam(self, x):
+        print('A.spam')
+
+    def foo(self):
+        print('A.foo')
+
+class B:
+    def __init__(self):
+        self._a = A()   
+
+    def bar(self):
+        print('B.bar')
+
+    # expose all of the methods defined on class A   
+    def __getattr__(self, name):
+        return getattr(self._a, name)
+
+if "__main__" == __name__:
+    b = B()
+    b.bar()
+    b.spam(42)
+
+class Proxy:
+    """a proxy class that wraps around another object, but exposes its public attributes"""
+    def __init__(self, obj):
+        self._obj = obj
+
+    # delegate attribute lookup to internal obj
+    def __getattr__(self, name):
+        print("getattr:", name)
+        return getattr(self._obj, name)
+
+    # delegate attribute assignment
+    def __setattr__(self, name, value):
+        if name.startswith("_"):
+            super().__setattr__(name, value)
+        else:
+            print("setattr:", name, value)
+            setattr(self._obj, name, value)
+
+    # delegate attribute deletion
+    def __delattr__(self, name):
+        if name.startswith("_"):
+            super().__delattr__(name)
+        else:
+            print("delattr:", name)
+            delattr(self._obj, name)
+
+if "__main__" == __name__:
+    class Spam:
+        def __init__(self, x):
+            self.x = x
+
+        def bar(self, y):
+            print("Spam.bar:", self.x, y)
+
+    # create an instance
+    s = Spam(2)
+    # create a proxy around it
+    p = Proxy(s)
+    # access the proxy
+    print(p.x)
+    p.bar(3)
+    p.x = 37
+
+class ListLike:
+    def __init__(self):
+        self._items = []
+
+    def __getattr__(self, name):
+        return getattr(self._items, name)
+
+    # added special methods to support certain list operations
+    def __len__(self):
+        return len(self._items)
+
+    def __getitem__(self, index):
+        return self._items[index]
+
+    def __setitem__(self, index, value):
+        self._items[index] = value
+
+    def __delitem__(self, index):
+        del self._items[index]
+
+if "__main__" == __name__:
+    a = ListLike()
+    a.append(2)
+    a.insert(0, 1)
+    a.sort()
+    print(len(a))
+    print(a[0])
 
 #16 在类中定义多个构造函数
 
+
 #17 不通过调用init来创建实例
+
+
+#18 用Mixin技术来扩展类定义
+
+
+#19 实现带有状态的对象或状态机
