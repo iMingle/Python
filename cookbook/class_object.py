@@ -1079,17 +1079,17 @@ if "__main__" == __name__:
 #15 委托属性的访问
 class A:
     def spam(self, x):
-        print('A.spam')
+        print("A.spam")
 
     def foo(self):
-        print('A.foo')
+        print("A.foo")
 
 class B:
     def __init__(self):
         self._a = A()   
 
     def bar(self):
-        print('B.bar')
+        print("B.bar")
 
     # expose all of the methods defined on class A   
     def __getattr__(self, name):
@@ -1172,12 +1172,495 @@ if "__main__" == __name__:
     print(a[0])
 
 #16 在类中定义多个构造函数
+import time
 
+class Date:
+    def __init__(self, year, month, day):
+        super(Date, self).__init__()
+        self.year = year
+        self.month = month
+        self.day = day
+
+    @classmethod
+    def today(cls):
+        t = time.localtime()
+        return cls(t.tm_year, t.tm_mon, t.tm_mday)
+
+a = Date(2016, 8, 6)
+b = Date.today()
+print(a)
+print(b)
+
+class NewDate(Date):
+    pass
+
+c = Date.today()
+d = NewDate.today()
+print(c) # Date
+print(d) # NewDate
 
 #17 不通过调用init来创建实例
+class Date:
+    def __init__(self, year, month, day):
+        super(Date, self).__init__()
+        self.year = year
+        self.month = month
+        self.day = day
 
+d = Date.__new__(Date)
+print(d)
+# print(d.year) # AttributeError: 'Date' object has no attribute 'year'
+data = {"year": 2016, "month": 8, "day": 6}
+for key, value in data.items():
+    setattr(d, key, value)
+print(d.year)
+
+from time import localtime
+
+class Date:
+    def __init__(self, year, month, day):
+        super(Date, self).__init__()
+        self.year = year
+        self.month = month
+        self.day = day
+
+    @classmethod
+    def today(cls):
+        d = cls.__new__(cls)
+        t = localtime()
+        d.year = t.tm_year
+        d.month = t.tm_mon
+        d.day = t.tm_mday
+        return d
 
 #18 用Mixin技术来扩展类定义
+class LoggedMappingMixin:
+    """add logging to get/set/delete operations for debugging."""
+    __slots__ = ()
 
+    def __getitem__(self, key):
+        print("getting " + str(key))
+        return super().__getitem__(key)
+
+    def __setitem__(self, key, value):
+        print("setting {} = {!r}".format(key, value))
+        return super().__setitem__(key, value)
+
+    def __delitem__(self, key):
+        print("deleting " + str(key))
+        return super().__delitem__(key)
+    
+class SetOnceMappingMixin:
+    """only allow a key to be set once."""
+    __slots__ = ()
+
+    def __setitem__(self, key, value):
+        if key in self:
+            raise KeyError(str(key) + " already set")
+        return super().__setitem__(key, value)
+
+class StringKeysMappingMixin:
+    """restrict keys to strings only."""
+    __slots__ = ()
+
+    def __setitem__(self, key, value):
+        if not isinstance(key, str):
+            raise TypeError("keys must be strings")
+        return super().__setitem__(key, value)
+
+class LoggedDict(LoggedMappingMixin, dict):
+    pass
+
+d = LoggedDict()
+d["x"] = 23
+print(d["x"])
+del d["x"]
+
+from collections import defaultdict
+
+class SetOnceDefaultDict(SetOnceMappingMixin, defaultdict):
+    pass
+ 
+d = SetOnceDefaultDict(list)
+d["x"].append(2)
+d["y"].append(3)
+d["x"].append(10)
+try:
+    d["x"] = 23
+except KeyError as e:
+    print(e)
+
+from collections import OrderedDict
+
+class StringOrderedDict(StringKeysMappingMixin,
+                        SetOnceMappingMixin,
+                        OrderedDict):
+    pass
+
+d = StringOrderedDict()
+d["x"] = 23
+try:
+    d[42] = 10
+except TypeError as e:
+    print(e)
+
+try:
+    d["x"] = 42
+except KeyError as e:
+    print(e)
+
+class RestrictKeysMixin:
+    def __init__(self, *args, _restrict_key_type, **kwargs):
+        self.__restrict_key_type = _restrict_key_type
+        super().__init__(*args, **kwargs)
+    
+    def __setitem__(self, key, value):
+        if not isinstance(key, self.__restrict_key_type):
+            raise TypeError("Keys must be " + str(self.__restrict_key_type))
+        super().__setitem__(key, value)
+
+class RDict(RestrictKeysMixin, dict):
+    pass
+
+d = RDict(_restrict_key_type=str)
+e = RDict([("name", "Dave"), ("n", 37)], _restrict_key_type=str)
+f = RDict(name="Dave", n=37, _restrict_key_type=str)
+print(f)
+try:
+    f[42] = 10
+except TypeError as e:
+    print(e)
+
+# 用类装饰器实现mixin
+def LoggedMapping(cls):
+    cls_getitem = cls.__getitem__
+    cls_setitem = cls.__setitem__
+    cls_delitem = cls.__delitem__
+
+    def __getitem__(self, key):
+        print("getting %s" % key)
+        return cls_getitem(self, key)
+
+    def __setitem__(self, key, value):
+        print("setting %s = %r" % (key, value))
+        return cls_setitem(self, key, value)
+
+    def __delitem__(self, key):
+        print("deleting %s" % key)
+        return cls_delitem(self, key)
+
+    cls.__getitem__ = __getitem__
+    cls.__setitem__ = __setitem__
+    cls.__delitem__ = __delitem__
+    return cls
+
+@LoggedMapping
+class LoggedDict(dict):
+    pass
+
+d = LoggedDict()
+d["x"] = 23
+print(d["x"])
+del d["x"]
 
 #19 实现带有状态的对象或状态机
+class Connection:
+    def __init__(self):
+        self.new_state(ClosedConnectionState)
+
+    def new_state(self, newstate):
+        self._state = newstate
+
+    # delegate to the state class
+    def read(self):
+        return self._state.read(self)
+
+    def write(self, data):
+        return self._state.write(self, data)
+
+    def open(self):
+        return self._state.open(self)
+
+    def close(self):
+        return self._state.close(self)
+
+class ConnectionState:
+    """connection state base class."""
+    @staticmethod
+    def read(conn):
+        raise NotImplementedError()
+
+    @staticmethod
+    def write(conn, data):
+        raise NotImplementedError()
+
+    @staticmethod
+    def open(conn):
+        raise NotImplementedError()
+
+    @staticmethod
+    def close(conn):
+        raise NotImplementedError()
+
+# Implementation of different states
+class ClosedConnectionState(ConnectionState):
+    @staticmethod
+    def read(conn):
+        raise RuntimeError("not open")
+
+    @staticmethod
+    def write(conn, data):
+        raise RuntimeError("not open")
+
+    @staticmethod
+    def open(conn):
+        conn.new_state(OpenConnectionState)
+
+    @staticmethod
+    def close(conn):
+        raise RuntimeError("already closed")
+
+class OpenConnectionState(ConnectionState):
+    @staticmethod
+    def read(conn):
+        print("reading")
+
+    @staticmethod
+    def write(conn, data):
+        print("writing")
+
+    @staticmethod
+    def open(conn):
+        raise RuntimeError("already open")
+
+    @staticmethod
+    def close(conn):
+        conn.new_state(ClosedConnectionState)
+
+if "__main__" == __name__:
+    c = Connection()
+    print(c)
+    try:
+        c.read()
+    except RuntimeError as e:
+        print(e)
+
+    c.open()
+    print(c)
+    c.read()
+    c.close()
+    print(c)
+
+class Connection:
+    def __init__(self):
+        self.new_state(ClosedConnection)
+
+    def new_state(self, state):
+        self.__class__ = state
+
+    def read(self):
+        raise NotImplementedError()
+
+    def write(self, data):
+        raise NotImplementedError()
+
+    def open(self):
+        raise NotImplementedError()
+
+    def close(self):
+        raise NotImplementedError()
+
+class ClosedConnection(Connection):
+    def read(self):
+        raise RuntimeError("not open")
+
+    def write(self, data):
+        raise RuntimeError("not open")
+
+    def open(self):
+        self.new_state(OpenConnection)
+
+    def close(self):
+        raise RuntimeError("already closed")
+
+class OpenConnection(Connection):
+    def read(self):
+        print("reading")
+
+    def write(self, data):
+        print("writing")
+
+    def open(self):
+        raise RuntimeError("already open")
+
+    def close(self):
+        self.new_state(ClosedConnection)
+
+if "__main__" == __name__:
+    c = Connection()
+    print(c)
+    try:
+        c.read()
+    except RuntimeError as e:
+        print(e)
+
+    c.open()
+    print(c)
+    c.read()
+    c.close()
+    print(c)
+
+#20 调用对象上的方法,方法名以字符串形式输出
+class Point:
+    def __init__(self, x, y):
+        super(Point, self).__init__()
+        self.x = x
+        self.y = y
+
+    def __repr(self):
+        return "Point({!r:}, {!r:})".format(self.x, self.y)
+
+    def distance(self, x, y):
+        return math.hypot(self.x - x, self.y - y)
+
+p = Point(2, 3)
+d = getattr(p, "distance")(0, 0)
+print(d)
+
+import operator
+print(operator.methodcaller("distance", 0, 0)(p))
+
+points = [
+    Point(1, 2),
+    Point(3, 0),
+    Point(10, -3),
+    Point(-5, -7),
+    Point(-1, 8),
+    Point(3, 2)
+]
+
+# sort by distance from origin (0, 0)
+points.sort(key=operator.methodcaller("distance", 0, 0))
+for p in points:
+    print(p)
+
+#21 实现访问者模式
+class Node:
+    pass
+
+class UnaryOperator(Node):
+    def __init__(self, operand):
+        self.operand = operand
+
+class BinaryOperator(Node):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+class Add(BinaryOperator):
+    pass
+
+class Sub(BinaryOperator):
+    pass
+
+class Mul(BinaryOperator):
+    pass
+
+class Div(BinaryOperator):
+    pass
+
+class Negate(UnaryOperator):
+    pass
+
+class Number(Node):
+    def __init__(self, value):
+        self.value = value
+
+# representation of 1 + 2 * (3 - 4) / 5
+t1 = Sub(Number(3), Number(4))
+t2 = Mul(Number(2), t1)
+t3 = Div(t2, Number(5))
+t4 = Add(Number(1), t3)
+
+# 访问者模式
+class NodeVisitor:
+    def visit(self, node):
+        methodname = "visit_" + type(node).__name__
+        method = getattr(self, methodname, None)
+        if method is None:
+            method = self.generic_visit
+        return method(node)
+    
+    def generic_visit(self, node):
+        raise RuntimeError("No {} method".format("visit_" + type(node).__name__))
+
+class Evaluator(NodeVisitor):
+    """计算器"""
+    def visit_Number(self, node):
+        return node.value
+
+    def visit_Add(self, node):
+        return self.visit(node.left) + self.visit(node.right)
+
+    def visit_Sub(self, node):
+        return self.visit(node.left) - self.visit(node.right)
+
+    def visit_Mul(self, node):
+        return self.visit(node.left) * self.visit(node.right)
+
+    def visit_Div(self, node):
+        return self.visit(node.left) / self.visit(node.right)
+
+    def visit_Negate(self, node):
+        return -node.operand
+
+e = Evaluator()
+print(e.visit(t4))
+
+class StackCode(NodeVisitor):
+    """generate stack instructions."""
+    def generate_code(self, node):
+        self.instructions = []
+        self.visit(node)
+        return self.instructions
+
+    def visit_Number(self, node):
+        self.instructions.append(('PUSH', node.value))
+
+    def binop(self, node, instruction):
+        self.visit(node.left)
+        self.visit(node.right)
+        self.instructions.append((instruction,))
+
+    def visit_Add(self, node):
+        self.binop(node, 'ADD')
+
+    def visit_Sub(self, node):
+        self.binop(node, 'SUB')
+ 
+    def visit_Mul(self, node):
+        self.binop(node, 'MUL')
+       
+    def visit_Div(self, node):
+        self.binop(node, 'DIV')
+
+    def unaryop(self, node, instruction):
+        self.visit(node.operand)
+        self.instructions.append((instruction,))
+  
+    def visit_Negate(self, node):
+        self.unaryop(node, 'NEG')
+
+s = StackCode()
+print(s.generate_code(t4))
+
+#22 实现非递归的访问者模式
+
+
+#23 在环状数据结构中管理内存
+
+
+#24 让类支持比较操作
+
+
+#25 创建缓存实例
