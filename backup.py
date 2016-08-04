@@ -13,10 +13,10 @@ target_dir = r'D:\Backup'
 if not os.path.exists(target_dir):
 	os.mkdir(target_dir)
 	print('Successfully created directory', target_dir)
-today = target_dir + os.sep + time.strftime("%Y%m%d")
-now = time.strftime("%H%M%S")
+today = target_dir + os.sep + time.strftime('%Y%m%d')
+now = time.strftime('%H%M%S')
 
-comment = input("Enter a comment --> ")
+comment = input('Enter a comment --> ')
 if len(comment) == 0:
 	target = today + os.sep + now + '.zip'
 else:

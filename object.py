@@ -13,7 +13,7 @@ print(dir(p))
 
 class Person1:
 	def show(self):
-		print("I am Person1")
+		print('I am Person1')
 
 # Person.__bases__ = (Person1,)	# it is a bug
 # print(p.show())
@@ -22,51 +22,51 @@ class Person(object):
 	def __init__(self, name):
 		self.name = name
 	def sayHi(self):
-		print("Hello, my name is", self.name)
-p = Person("Mingle")
+		print('Hello, my name is', self.name)
+p = Person('Mingle')
 p.sayHi()
-Person("DuoDuo").sayHi()
+Person('DuoDuo').sayHi()
 
 class Robot:
-	'''Represents a robot, with a name.'''
+	"""Represents a robot, with a name."""
 
 	# a class variable, counting the number of robots
 	population = 0
 
 	def __init__(self, name):
-		'''Initializes the data.'''
+		"""Initializes the data."""
 		self.name = name
-		print("(Initialize {0})".format(self.name))
+		print('(Initialize {0})'.format(self.name))
 		Robot.population += 1
 
 	def __del__(self):
-		'''I am dying.'''
-		print("{0} is being destroyed!".format(self.name))
+		"""I am dying."""
+		print('{0} is being destroyed!'.format(self.name))
 		Robot.population -= 1
 		if Robot.population == 0:
-			print("{0} was the last one.".format(self.name))
+			print('{0} was the last one.'.format(self.name))
 		else:
-			print("There are still {0:d} robots working.".format(Robot.population))
+			print('There are still {0:d} robots working.'.format(Robot.population))
 
 	def sayHi(self):
-		'''Greeting by robot.
+		"""Greeting by robot.
 
-		Yeah, they can do that.'''
-		print("Greetings, my master call me {0}.".format(self.name))
+		Yeah, they can do that."""
+		print('Greetings, my master call me {0}.'.format(self.name))
 
 	@staticmethod
 	def howMany():
-		'''Prints the current population.'''
-		print("We have {0:d} robots.".format(Robot.population))
+		"""Prints the current population."""
+		print('We have {0:d} robots.'.format(Robot.population))
 	# howMany = staticmethod(howMany)
 
-r1 = Robot("R1-D1")
+r1 = Robot('R1-D1')
 r1.sayHi()
 Robot.howMany()
-r2 = Robot("R2-D2")
+r2 = Robot('R2-D2')
 r2.sayHi()
 Robot.howMany()
-print("\nRobots can do some work here.")
+print('\nRobots can do some work here.')
 print("Robots have finished their work. So let's destroy them.")
 del r1
 del r2
@@ -83,8 +83,8 @@ class SchoolMember:
 		print('(Initialize SchoolMember:{0})'.format(self.name))
 
 	def tell(self):
-		'''Tell my details.'''
-		print('Name:"{0}" Age:"{1}"'.format(self.name, self.age), end = '')
+		"""Tell my details."""
+		print("Name:'{0}' Age:'{1}'".format(self.name, self.age), end = '')
 		
 class Teacher(SchoolMember):
 	"""Repressent a teacher."""
@@ -96,7 +96,7 @@ class Teacher(SchoolMember):
 		
 	def tell(self):
 		SchoolMember.tell(self)
-		print('Salary:"{0:d}"'.format(self.salary))
+		print("Salary:'{0:d}'".format(self.salary))
 
 class Student(SchoolMember):
 	"""Repressent a student."""
@@ -108,10 +108,10 @@ class Student(SchoolMember):
 		
 	def tell(self):
 		SchoolMember.tell(self)
-		print('Marks:"{0:d}"'.format(self.marks))
+		print("Marks:'{0:d}'".format(self.marks))
 
-teacher = Teacher("Mr.Li", 30, 30000)
-student = Student("Mingle", 25, 75)
+teacher = Teacher('Mr.Li', 30, 30000)
+student = Student('Mingle', 25, 75)
 print()	# pirnts a blank line
 members = [teacher, student]
 for member in members:

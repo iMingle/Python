@@ -16,29 +16,29 @@ def is_palindrome(text):
 	return text == reverse(text)
 
 def main():
-	something = input("Enter text:")
+	something = input('Enter text:')
 	if is_palindrome(something):
-		print("Yes, {0} is a palindrome".format(something))
+		print('Yes, {0} is a palindrome'.format(something))
 	else:
-		print("No, {0} is not a palindrome".format(something))
+		print('No, {0} is not a palindrome'.format(something))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	main()
 else:
-	print("io.py was imported")
+	print('io.py was imported')
 
 # 读写文件
-poem = '''\
+poem = """\
 Programming is fun
 When the work is done
 if you wanna make your work also fun:
 	use Python!
-'''
-f = open("poem.txt", 'w')
+"""
+f = open('poem.txt', 'w')
 f.write(poem)
 f.close()
 
-f = open("poem.txt")
+f = open('poem.txt')
 while True:
 	line = f.readline()
 	if len(line) == 0:

@@ -14,9 +14,9 @@ print(round(a, -2))
 print(round(a, -3))
 
 x = 1.23456
-print(format(x, "0.2f"))
-print(format(x, ".3f"))
-print("value is {:.3f}".format(x))
+print(format(x, '0.2f'))
+print(format(x, '.3f'))
+print('value is {:.3f}'.format(x))
 
 a = 2.1
 b = 4.2
@@ -27,14 +27,14 @@ print(c)
 
 #2 执行精确的小数计算
 from decimal import Decimal
-a = Decimal("4.2")
-b = Decimal("2.1")
+a = Decimal('4.2')
+b = Decimal('2.1')
 print(a + b)
-print(Decimal("6.3") == (a + b))
+print(Decimal('6.3') == (a + b))
 
 from decimal import localcontext
-a = Decimal("1.3")
-b = Decimal("1.7")
+a = Decimal('1.3')
+b = Decimal('1.7')
 print(a / b)
 with localcontext() as ctx:
 	ctx.prec = 3
@@ -52,27 +52,27 @@ print(math.fsum(nums))
 #3 对数值做格式化输出
 # 格式化格式: [<>^]?width[,]?(.digits)?
 x = 1234.56789
-x = Decimal("1234.56789")
-print(format(x, ".2f"))
-print(format(-x, ".2f"))
-print(format(x, ">10.1f"))
-print(format(x, "<10.1f"))
-print(format(x, "^10.1f"))
-print(format(x, ","))
-print(format(x, ",.1f"))
-print(format(x, "0,.1f"))
-print(format(x, "e"))
-print(format(x, ".2e"))
+x = Decimal('1234.56789')
+print(format(x, '.2f'))
+print(format(-x, '.2f'))
+print(format(x, '>10.1f'))
+print(format(x, '<10.1f'))
+print(format(x, '^10.1f'))
+print(format(x, ','))
+print(format(x, ',.1f'))
+print(format(x, '0,.1f'))
+print(format(x, 'e'))
+print(format(x, '.2e'))
 
-print("The value is {:0,.2f}".format(x))
+print('The value is {:0,.2f}'.format(x))
 
 # ,和.转换
-swap_separators = {ord("."): ",", ord(","): "."}
-print(format(x, ",").translate(swap_separators))
+swap_separators = {ord('.'): ',', ord(','): '.'}
+print(format(x, ',').translate(swap_separators))
 
-print("%0.2f" % x)
-print("%10.1f" % x)
-print("%-10.1f" % x)
+print('%0.2f' % x)
+print('%10.1f' % x)
+print('%-10.1f' % x)
 
 #4 同二进制,八进制和十六进制数打交道
 x = 1234
@@ -81,53 +81,53 @@ print(oct(x))
 print(hex(x))
 
 # 不出现0x,0o和0b前缀
-print(format(x, "b"))
-print(format(x, "o"))
-print(format(x, "x"))
+print(format(x, 'b'))
+print(format(x, 'o'))
+print(format(x, 'x'))
 
 x = -1234
-print(format(x, "b"))
-print(format(x, "o"))
-print(format(x, "x"))
+print(format(x, 'b'))
+print(format(x, 'o'))
+print(format(x, 'x'))
 # 转为无符号数
-print(format(2**32 + x, "b"))
-print(format(2**32 + x, "o"))
-print(format(2**32 + x, "x"))
+print(format(2**32 + x, 'b'))
+print(format(2**32 + x, 'o'))
+print(format(2**32 + x, 'x'))
 
-print(int("4d2", 16))
-print(int("10011010010", 2))
+print(int('4d2', 16))
+print(int('10011010010', 2))
 
 import os
-os.chmod("number_date_time.py", 0o755)
+os.chmod('number_date_time.py', 0o755)
 
 #5 从字符串中打包和解包大整数
-data = b"\x00\x124V\x00x\x90\xab\x00\xcd\xef\x01\x00#\x004"
+data = b'\x00\x124V\x00x\x90\xab\x00\xcd\xef\x01\x00#\x004'
 print(len(data))
-print(int.from_bytes(data, "little"))
-print(int.from_bytes(data, "big"))
+print(int.from_bytes(data, 'little'))
+print(int.from_bytes(data, 'big'))
 
 x = 94522842520747284487117727783387188
-print(x.to_bytes(16, "big"))
-print(x.to_bytes(16, "little"))
+print(x.to_bytes(16, 'big'))
+print(x.to_bytes(16, 'little'))
 
 # 解包
 import struct
-hi, lo = struct.unpack(">QQ", data)
+hi, lo = struct.unpack('>QQ', data)
 print((hi << 64) + lo)
 
 # 确认字节序是大端还是小端
 x = 0x01020304
-print(x.to_bytes(4, "big"))
-print(x.to_bytes(4, "little"))
+print(x.to_bytes(4, 'big'))
+print(x.to_bytes(4, 'little'))
 
 x = 523 ** 23
 print(x)
-# print(x.to_bytes(16, "little")) # error,字节太小
+# print(x.to_bytes(16, 'little')) # error,字节太小
 print(x.bit_length())
 nbytes, rem = divmod(x.bit_length(), 8)
 if rem:
 	nbytes += 1
-print(x.to_bytes(nbytes, "little"))
+print(x.to_bytes(nbytes, 'little'))
 
 #6 复数运算
 a = complex(2, 4)
@@ -158,9 +158,9 @@ print(np.sin(a))
 print(cmath.sqrt(-1))
 
 #7 处理无穷大和NaN
-a = float("inf") # 正无穷大
-b = float("-inf") # 负无穷大
-c = float("nan") # not a number
+a = float('inf') # 正无穷大
+b = float('-inf') # 负无穷大
+c = float('nan') # not a number
 print(math.isinf(a))
 print(math.isinf(b))
 print(math.isnan(c))
@@ -174,7 +174,7 @@ print(c / 2)
 print(c * 2)
 print(math.sqrt(c))
 
-d = float("nan")
+d = float('nan')
 print(c == d) # False
 
 #8 分数的计算
@@ -295,7 +295,7 @@ print(random.getrandbits(200))
 # 来修改初始的种子值
 random.seed() # seed based on system time or os.urandom()
 random.seed(12345)
-random.seed(b"bytedata")
+random.seed(b'bytedata')
 
 #12 时间换算
 from datetime import timedelta # 时间间隔
@@ -342,7 +342,7 @@ print(d.months)
 print(d.days)
 
 #13 计算上周五的日期
-weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 def get_previous_byday(dayname, start_date=None):
     if start_date is None:
@@ -355,11 +355,11 @@ def get_previous_byday(dayname, start_date=None):
     target_date = start_date - timedelta(days=days_ago)
     return target_date
 print(datetime.today())
-print(get_previous_byday("Monday"))
-print(get_previous_byday("Tuesday"))
-print(get_previous_byday("Wednesday"))
-print(get_previous_byday("Friday"))
-print(get_previous_byday("Sunday"))
+print(get_previous_byday('Monday'))
+print(get_previous_byday('Tuesday'))
+print(get_previous_byday('Wednesday'))
+print(get_previous_byday('Friday'))
+print(get_previous_byday('Sunday'))
 
 from dateutil.rrule import *
 d = datetime.now()
@@ -393,19 +393,19 @@ for d in date_range(datetime(2016, 9, 1), datetime(2016, 10, 1), timedelta(hours
     print(d)
 
 #15 字符串转换为日期
-text = "2016-07-28"
-y = datetime.strptime(text, "%Y-%m-%d") # strptime性能比较差
+text = '2016-07-28'
+y = datetime.strptime(text, '%Y-%m-%d') # strptime性能比较差
 z = datetime.now()
 diff = z - y
 print(diff)
 # 日期转换为字符串
-nice_z = datetime.strftime(z, "%A %B %d, %Y")
+nice_z = datetime.strftime(z, '%A %B %d, %Y')
 print(nice_z)
 
 def parse_ymd(s):
-    year, month, day = s.split("-")
+    year, month, day = s.split('-')
     return datetime(int(year), int(month), int(day))
-print(parse_ymd("2016-07-30"))
+print(parse_ymd('2016-07-30'))
 
 #16 结合时区的日期操作
 # 对几乎所有涉及到时区的问题,你都应该使用pytz模块.这个包提供了Olson时
@@ -414,7 +414,7 @@ from pytz import timezone
 d = datetime(2016, 7, 27, 19, 30, 30)
 print(d)
 # Localize the date for Chicago
-central = timezone("US/Central")
+central = timezone('US/Central')
 loc_d = central.localize(d)
 print(loc_d)
 # Convert to Bangalore time
@@ -438,7 +438,7 @@ later_utc = utc_d + timedelta(minutes=30)
 print(later_utc.astimezone(central))
 
 # 获取时区的名称
-print(pytz.country_timezones["CN"])
+print(pytz.country_timezones['CN'])
 
 # python 3.2 加入timezone
 from datetime import timezone

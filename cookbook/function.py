@@ -11,13 +11,13 @@ print(avg(1, 2, 3, 4))
 import html
 
 def make_element(name, value, **attrs):
-    keyvals = [' %s="%s"' % item for item in attrs.items()]
-    attr_str = "".join(keyvals)
-    element = "<{name}{attrs}>{value}</{name}>".format(name=name, attrs=attr_str, value=html.escape(value))
+    keyvals = [" %s='%s'" % item for item in attrs.items()]
+    attr_str = ''.join(keyvals)
+    element = '<{name}{attrs}>{value}</{name}>'.format(name=name, attrs=attr_str, value=html.escape(value))
     return element
-e = make_element("item", "Albatross", size="large", quantity=6)
+e = make_element('item', 'Albatross', size='large', quantity=6)
 print(e)
-e = make_element("p", "<spam>")
+e = make_element('p', '<spam>')
 print(e)
 
 def anyargs(*args, **kwargs):
@@ -81,9 +81,9 @@ spam(1)
 #6 定义匿名或内联函数
 add = lambda x, y: x + y
 print(add(2, 3))
-print(add("hello", "world"))
+print(add('hello', 'world'))
 
-names = ["David Beazley", "Brian Jones", "Raymond Hettinger", "Ned Batchelder"]
+names = ['David Beazley', 'Brian Jones', 'Raymond Hettinger', 'Ned Batchelder']
 print(sorted(names, key=lambda name: name.split()[-1].lower()))
 
 #7 在匿名函数中绑定变量的值
@@ -137,17 +137,17 @@ print(points)
 
 def output_result(result, log=None):
     if log is None:
-        log.debug("Got: %r", result)
+        log.debug('Got: %r', result)
 
 def add(x, y):
     return x + y
 
-if "__main__" == __name__:
+if '__main__' == __name__:
     import logging
     from multiprocessing import Pool
 
     logging.basicConfig(level=logging.DEBUG)
-    log = logging.getLogger("test")
+    log = logging.getLogger('test')
 
     p = Pool()
     p.apply_async(add, (3, 4), callback=partial(output_result, log=log))
@@ -164,8 +164,8 @@ class EchoHandler(StreamRequestHandler):
 
     def handle(self):
         for line in self.rfile:
-            self.wfile.write(b"GOT:" + line)
-serv = TCPServer(("", 15000), partial(EchoHandler, ack=b"RECEIVED:"))
+            self.wfile.write(b'GOT:' + line)
+serv = TCPServer(('', 15000), partial(EchoHandler, ack=b'RECEIVED:'))
 # serv.serve_forever()
 
 #9 用函数替代只有单个方法的类
@@ -180,18 +180,18 @@ class UrlTemplate:
     def open(self, **kwargs):
         return urlopen(self.template.format_map(kwargs))
 
-yahoo = UrlTemplate("http://finance.yahoo.com/d/quotes.csv?s={names}&f={fields}")
-for line in yahoo.open(names="IBM,AAPL,FB", fields="sl1c1v"):
-    print(line.decode("utf-8"))
+yahoo = UrlTemplate('http://finance.yahoo.com/d/quotes.csv?s={names}&f={fields}')
+for line in yahoo.open(names='IBM,AAPL,FB', fields='sl1c1v'):
+    print(line.decode('utf-8'))
 
 # 闭包
 def urltemplate(template):
     def opener(**kwargs):
         return urlopen(template.format_map(kwargs))
     return opener
-yahoo = urltemplate("http://finance.yahoo.com/d/quotes.csv?s={names}&f={fields}")
-for line in yahoo(names="IBM,AAPL,FB", fields="sl1c1v"):
-    print(line.decode("utf-8"))
+yahoo = urltemplate('http://finance.yahoo.com/d/quotes.csv?s={names}&f={fields}')
+for line in yahoo(names='IBM,AAPL,FB', fields='sl1c1v'):
+    print(line.decode('utf-8'))
 
 #10 在回调函数中携带额外的状态
 def apply_async(func, args, *, callback):
@@ -201,13 +201,13 @@ def apply_async(func, args, *, callback):
     callback(result)
 
 def print_result(result):
-    print("GOT:", result)
+    print('GOT:', result)
 
 def add(x, y):
     return x + y
 
 apply_async(add, (2, 3), callback=print_result)
-apply_async(add, ("hello", "world"), callback=print_result)
+apply_async(add, ('hello', 'world'), callback=print_result)
 
 class ResultHandler:
     def __init__(self):
@@ -215,7 +215,7 @@ class ResultHandler:
 
     def handler(self, result):
         self.sequence += 1
-        print("[{}] Got: {}".format(self.sequence, result))
+        print('[{}] Got: {}'.format(self.sequence, result))
 r = ResultHandler()
 apply_async(add, (2, 3), callback=r.handler)
 
@@ -225,11 +225,11 @@ def make_handler():
     def handler(result):
         nonlocal sequence
         sequence += 1
-        print("[{}] Got: {}".format(sequence, result))
+        print('[{}] Got: {}'.format(sequence, result))
     return handler
 handler = make_handler()
 apply_async(add, (2, 3), callback=handler)
-apply_async(add, ("hello", "world"), callback=handler)
+apply_async(add, ('hello', 'world'), callback=handler)
 
 # 协程coroutine
 def make_handler():
@@ -237,11 +237,11 @@ def make_handler():
     while True:
         result = yield
         sequence += 1
-        print("[{}] Got: {}".format(sequence, result))
+        print('[{}] Got: {}'.format(sequence, result))
 handler = make_handler()
 next(handler)
 apply_async(add, (2, 3), callback=handler.send)
-apply_async(add, ("hello", "world"), callback=handler.send)
+apply_async(add, ('hello', 'world'), callback=handler.send)
 
 # partial
 class SequenceNo:
@@ -250,11 +250,11 @@ class SequenceNo:
 
 def handler(result, seq):
     seq.sequence += 1
-    print("[{}] Got: {}".format(seq.sequence, result))
+    print('[{}] Got: {}'.format(seq.sequence, result))
 seq = SequenceNo()
 apply_async(add, (2, 3), callback=partial(handler, seq=seq))
-apply_async(add, ("hello", "world"), callback=partial(handler, seq=seq))
-apply_async(add, ("hello", "world"), callback=lambda r: handler(r, seq))
+apply_async(add, ('hello', 'world'), callback=partial(handler, seq=seq))
+apply_async(add, ('hello', 'world'), callback=lambda r: handler(r, seq))
 
 #11 内联回调函数
 from queue import Queue
@@ -288,13 +288,13 @@ def add(x, y):
 def test():
     r = yield Async(add, (3, 4))
     print(r)
-    r = yield Async(add, ("hello", "world"))
+    r = yield Async(add, ('hello', 'world'))
     print(r)
     for n in range(10):
         r = yield Async(add, (n, n))
         print(r)
-    print("goodbye")
-if "__main__" == __name__:
+    print('goodbye')
+if '__main__' == __name__:
     # Simple test
     print('# --- Simple test')
     test()
@@ -309,7 +309,7 @@ if "__main__" == __name__:
 def sample():
     n = 0
     def func():
-        print("n=", n)
+        print('n=', n)
 
     def get_n():
         return n
@@ -339,7 +339,7 @@ class ClosureIntance:
         self.__dict__.update((key, value) for key, value in locals.items() if callable(value))
 
     def __len__(self):
-        return self.__dict__["__len__"]()
+        return self.__dict__['__len__']()
 
 def Stack():
     items = []
@@ -358,7 +358,7 @@ s = Stack()
 print(s)
 s.push(10)
 s.push(20)
-s.push("hello")
+s.push('hello')
 print(len(s))
 print(s.pop())
 print(s.pop())
@@ -379,8 +379,8 @@ class Stack2:
 from timeit import timeit
 try:
     s = Stack()
-    print("Stack", timeit("s.push(1);s.pop()", "from __main__ import s"))
+    print('Stack', timeit('s.push(1);s.pop()', 'from __main__ import s'))
     s = Stack2()
-    print("Stack2", timeit("s.push(1);s.pop()", "from __main__ import s"))
+    print('Stack2', timeit('s.push(1);s.pop()', 'from __main__ import s'))
 except Exception:
-    print("timeit error")
+    print('timeit error')

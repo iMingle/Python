@@ -4,22 +4,22 @@
 
 #1 手动遍历迭代器
 def manual_iter():
-    with open("data/somefile.txt") as f:
+    with open('data/somefile.txt') as f:
         try:
             while True:
                 line = next(f)
-                print(line, end="")
+                print(line, end='')
         except StopIteration:
             pass
 manual_iter()
 
 def manual_iter_new():
-    with open("data/somefile.txt") as f:
+    with open('data/somefile.txt') as f:
             while True:
                 line = next(f, None)
                 if line is None:
                     break
-                print(line, end="")
+                print(line, end='')
 manual_iter_new()
 
 items = [1, 2, 3]
@@ -35,14 +35,14 @@ class Node:
         self._children = []
 
     def __repr__(self):
-        return "Node({!r})".format(self._value) # !r表示调用repr()
+        return 'Node({!r})'.format(self._value) # !r表示调用repr()
 
     def add_child(self, node):
         self._children.append(node)
 
     def __iter__(self):
         return iter(self._children)
-if "__main__" == __name__:
+if '__main__' == __name__:
     root = Node(0)
     child1 = Node(1)
     child2 = Node(2)
@@ -63,11 +63,11 @@ for n in frange(0, 4, 0.5):
     print(n)
 
 def countdown(n):
-    print("Starting to count down", n)
+    print('Starting to count down', n)
     while n > 0:
         yield n
         n -= 1
-    print("Done!")
+    print('Done!')
 c = countdown(3)
 print(c)
 print(next(c))
@@ -84,7 +84,7 @@ class Node:
         self._children = []
 
     def __repr__(self):
-        return "Node({!r})".format(self._value)
+        return 'Node({!r})'.format(self._value)
 
     def add_child(self, node):
         self._children.append(node)
@@ -98,7 +98,7 @@ class Node:
         for c in self:
             yield from c.depth_first()
 
-if "__main__" == __name__:
+if '__main__' == __name__:
     root = Node(0)
     child1 = Node(1)
     child2 = Node(2)
@@ -118,7 +118,7 @@ class Node:
         self._children = []
 
     def __repr__(self):
-        return "Node({!r})".format(self._value)
+        return 'Node({!r})'.format(self._value)
 
     def add_child(self, node):
         self._children.append(node)
@@ -158,7 +158,7 @@ class DepthFirstIterator(object):
         else:
             self._child_iter = next(self._children_iter).depth_first()
             return next(self)
-if "__main__" == __name__:
+if '__main__' == __name__:
     root = Node(0)
     child1 = Node(1)
     child2 = Node(2)
@@ -175,9 +175,9 @@ a = [1, 2, 3, 4]
 for x in reversed(a):
     print(x)
 
-f = open("data/somefile.txt")
+f = open('data/somefile.txt')
 for line in reversed(list(f)):
-    print(line, end="")
+    print(line, end='')
 
 class Countdown:
     def __init__(self, start):
@@ -210,13 +210,13 @@ class linehistory:
 
     def clear(self):
         self.history.clear()
-with open("data/somefile.txt") as f:
+with open('data/somefile.txt') as f:
     lines = linehistory(f)
     print(lines)
     for line in lines:
-        if "python" in line:
+        if 'python' in line:
             for lineno, hline in lines.history:
-                print("{}:{}".format(lineno, hline), end="")
+                print('{}:{}'.format(lineno, hline), end='')
 
 #7 对迭代器做切片操作
 def count(n):
@@ -231,16 +231,16 @@ for x in itertools.islice(c, 10, 20):
 
 #8 跳过可迭代对象中的前一部分元素
 from itertools import dropwhile, islice
-with open("data/somefile.txt") as f:
-    for line in dropwhile(lambda line: line.startswith("="), f):
-        print(line, end="")
+with open('data/somefile.txt') as f:
+    for line in dropwhile(lambda line: line.startswith('='), f):
+        print(line, end='')
 
-items = ["a", "b", "c", 1, 4, 10, 15]
+items = ['a', 'b', 'c', 1, 4, 10, 15]
 for x in islice(items, 3, None):
     print(x)
 
 #9 迭代所有可能的组合或排列
-items = ["a", "b", "c"]
+items = ['a', 'b', 'c']
 from itertools import permutations
 for p in permutations(items):
     print(p)
@@ -260,25 +260,25 @@ for c in combinations_with_replacement(items, 3):
     print(c)
 
 #10 以索引-值对的形式迭代序列
-my_list = ["a", "b", "c"]
+my_list = ['a', 'b', 'c']
 for idx, value in enumerate(my_list):
     print(idx, value)
 for idx, value in enumerate(my_list, 1):
     print(idx, value)
 
 def parse_data(filename):
-    with open(filename, "rt") as f:
+    with open(filename, 'rt') as f:
         for lineno, line in enumerate(f, 1):
             fields = line.split()
             try:
                 count = int(fields[1])
             except ValueError as e:
-                print("Line {}: Parse error: {}".format(lineno, e))
-# parse_data("data/somefile.txt")
+                print('Line {}: Parse error: {}'.format(lineno, e))
+# parse_data('data/somefile.txt')
 
 from collections import defaultdict
 word_summary = defaultdict(list)
-with open("data/somefile.txt") as f:
+with open('data/somefile.txt') as f:
     lines = f.readlines()
 for idx, line in enumerate(lines):
     words = [w.strip().lower() for w in line.split()]
@@ -292,7 +292,7 @@ ypts = [101, 78, 37, 15, 62, 99]
 for x, y in zip(xpts, ypts):
     print(x, y)
 a = [1, 2, 3]
-b = ["a", "b", "c", "d"]
+b = ['a', 'b', 'c', 'd']
 for i in zip(a, b):
     print(i)
 
@@ -302,17 +302,17 @@ for i in zip_longest(a, b):
 for i in zip_longest(a, b, fillvalue=0):
     print(i)
 
-headers = ["name", "shares", "price"]
-values = ["ACME", 100, 490.1]
+headers = ['name', 'shares', 'price']
+values = ['ACME', 100, 490.1]
 s = dict(zip(headers, values))
 print(s)
 for name, value in zip(headers, values):
-    print(name, "=", value)
+    print(name, '=', value)
 
 #12 在不同的迭代器中进行迭代
 from itertools import chain
 a = [1, 2, 3, 4]
-b = ["x", "y", "z"]
+b = ['x', 'y', 'z']
 for x in chain(a, b):
     print(x)
 
@@ -339,12 +339,12 @@ def gen_opener(filenames):
     the file is closed immediately when proceeding to the next iteration.
     """
     for filename in filenames:
-        if filename.endswith(".gz"):
-            f = gzip.open(filename, "rt")
-        elif filename.endswith(".bz2"):
-            f = bz2.open(filename, "rt")
+        if filename.endswith('.gz'):
+            f = gzip.open(filename, 'rt')
+        elif filename.endswith('.bz2'):
+            f = bz2.open(filename, 'rt')
         else:
-            f = open(filename, "rt")
+            f = open(filename, 'rt')
         yield f
         f.close()
 
@@ -359,21 +359,21 @@ def gen_grep(pattern, lines):
     for line in lines:
         if pat.search(line):
             yield line
-if __name__ == "__main__":
-    lognames = gen_find("access-log*", "log")
+if __name__ == '__main__':
+    lognames = gen_find('access-log*', 'log')
     files = gen_opener(lognames)
     lines = gen_concatenate(files)
-    pylines = gen_grep("(?i)python", lines) # ignore case
+    pylines = gen_grep('(?i)python', lines) # ignore case
     for line in pylines:
         print(line)
     # 统计总字节量
-    lognames = gen_find("access-log*", "log")
+    lognames = gen_find('access-log*', 'log')
     files = gen_opener(lognames)
     lines = gen_concatenate(files)
-    pylines = gen_grep("(?i)python", lines)
+    pylines = gen_grep('(?i)python', lines)
     bytecolumn = (line.rsplit(None, 1)[1] for line in pylines)
-    bytesTuple = (int(x) for x in bytecolumn if x != "-")
-    print("Total", sum(bytesTuple))
+    bytesTuple = (int(x) for x in bytecolumn if x != '-')
+    print('Total', sum(bytesTuple))
 
 #14 扁平化处理嵌套型的序列
 from collections import Iterable
@@ -406,15 +406,15 @@ CHUNKSIZE = 8192
 def reader(s):
     while True:
         data = s.recv(CHUNKSIZE)
-        if b"" == data:
+        if b'' == data:
             break
         process_data(data)
 
 def reader_iter(s):
-    for chunk in iter(lambda: s.recv(CHUNKSIZE), b""):
+    for chunk in iter(lambda: s.recv(CHUNKSIZE), b''):
         process_data(data)
 
 import sys
-f = open("data/somefile.txt")
-for chunk in iter(lambda: f.read(10), ""):
+f = open('data/somefile.txt')
+for chunk in iter(lambda: f.read(10), ''):
     n = sys.stdout.write(chunk)

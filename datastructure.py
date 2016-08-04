@@ -3,7 +3,7 @@
 """
 
 # 数据结构-列表
-list = ["apple", "orange", "banana", "carrot"]
+list = ['apple', 'orange', 'banana', 'carrot']
 print('I have', len(list), 'items to purchase.')
 print('These items are:', end = ' ')
 for item in list:
@@ -22,7 +22,7 @@ print('My shopping list is now', list)
 
 # 数据结构-元组,不可变
 tuple = ('python', 'elephant', 'penguin')
-# tuple[3] = "change"	# TypeError: 'tuple' object does not support item assignment
+# tuple[3] = 'change'	# TypeError: 'tuple' object does not support item assignment
 print('Number of animals in the tuple is', len(tuple))
 new_tuple = ('monkey', 'camel', tuple)
 print('Number of cages in the new tuple is', len(new_tuple))
@@ -85,13 +85,13 @@ print('characters start to end is', name[:])
 
 # 数据结构-集合,没有顺序的简单对象的聚集
 collections = set(['brazil', 'russia', 'india'])
-print("india" in collections)
-print("china" in collections)
+print('india' in collections)
+print('china' in collections)
 collections_copy = collections.copy()
-collections_copy.add("china")
-print("china" in collections_copy)
+collections_copy.add('china')
+print('china' in collections_copy)
 collections_copy.issuperset(collections)
-collections.remove("russia")
+collections.remove('russia')
 print(collections_copy & collections)
 
 # 数据结构-引用,当你创建一个对象并给它赋一个变量的时候，这个变量仅仅引用那个对象，而不是表示这个对象本身
@@ -114,11 +114,11 @@ print('mylist is', mylist)
 name = 'Mingle' # This is a string object
 
 if name.startswith('Min'):
-	print('Yes, the string starts with "Min"')
+	print("Yes, the string starts with 'Min'")
 if 'e' in name:
-	print('Yes, it contains the string "e"')
+	print("Yes, it contains the string 'e'")
 if name.find('war') != -1:
-	print('Yes, it contains the string "war"')
+	print("Yes, it contains the string 'war'")
 delimiter = '_*_'
 mylist = ['Brazil', 'Russia', 'India', 'China']
 print(delimiter.join(mylist))
