@@ -37,11 +37,11 @@ a = Decimal('1.3')
 b = Decimal('1.7')
 print(a / b)
 with localcontext() as ctx:
-	ctx.prec = 3
-	print(a / b)
+    ctx.prec = 3
+    print(a / b)
 with localcontext() as ctx:
-	ctx.prec = 50
-	print(a / b)
+    ctx.prec = 50
+    print(a / b)
 
 # 大数和小数相加可能出错
 nums = [1.23e+18, 1, -1.23e+18]
@@ -126,7 +126,7 @@ print(x)
 print(x.bit_length())
 nbytes, rem = divmod(x.bit_length(), 8)
 if rem:
-	nbytes += 1
+    nbytes += 1
 print(x.to_bytes(nbytes, 'little'))
 
 #6 复数运算
@@ -211,7 +211,7 @@ print(ax + 10)
 print(ax + ay)
 
 def f(x):
-	return 3*x**2 - 2*x + 7
+    return 3*x**2 - 2*x + 7
 print(f(ax))
 
 print(np.sqrt(ax))

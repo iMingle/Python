@@ -7,7 +7,7 @@ list = ['apple', 'orange', 'banana', 'carrot']
 print('I have', len(list), 'items to purchase.')
 print('These items are:', end = ' ')
 for item in list:
-	print(item, end = ' ')
+    print(item, end = ' ')
 print('\nI also have to buy rice.')
 list.append('rice')
 print('My shopping list is now', list)
@@ -22,7 +22,7 @@ print('My shopping list is now', list)
 
 # 数据结构-元组,不可变
 tuple = ('python', 'elephant', 'penguin')
-# tuple[3] = 'change'	# TypeError: 'tuple' object does not support item assignment
+# tuple[3] = 'change'    # TypeError: 'tuple' object does not support item assignment
 print('Number of animals in the tuple is', len(tuple))
 new_tuple = ('monkey', 'camel', tuple)
 print('Number of cages in the new tuple is', len(new_tuple))
@@ -36,21 +36,21 @@ print(singleton_tuple)
 
 # 数据结构-字典,只能使用不可变的对象（比如字符串）来作为字典的键，但是你可以把不可变或可变的对象作为字典的值
 dict = {
-	'Mingle' : 'jinminglei@yeah.net',
-	'Larry' : 'larry@wall.org',
-	'Matsumoto' : 'matz@ruby-lang.org',
-	'Spammer' : 'spammer@hotmail.com'
+    'Mingle' : 'jinminglei@yeah.net',
+    'Larry' : 'larry@wall.org',
+    'Matsumoto' : 'matz@ruby-lang.org',
+    'Spammer' : 'spammer@hotmail.com'
 }
 print("Mingle's address is", dict['Mingle'])
 # Deleting a key-value pair
 del dict['Spammer']
 print('\nThere are {0} contacts in the address-book\n'.format(len(dict)))
 for name, address in dict.items():
-	print('Contact {0} at {1}'.format(name, address))
+    print('Contact {0} at {1}'.format(name, address))
 # Adding a key-value pair
 dict['Guido'] = 'guido@python.org'
 if 'Guido' in dict: # OR dict.has_key('Guido')
-	print("\nGuido's address is", dict['Guido'])
+    print("\nGuido's address is", dict['Guido'])
 
 # 数据结构-序列,列表、元组和字符串都是序列
 shoplist = ['apple', 'mango', 'carrot', 'banana']
@@ -114,11 +114,11 @@ print('mylist is', mylist)
 name = 'Mingle' # This is a string object
 
 if name.startswith('Min'):
-	print("Yes, the string starts with 'Min'")
+    print("Yes, the string starts with 'Min'")
 if 'e' in name:
-	print("Yes, it contains the string 'e'")
+    print("Yes, it contains the string 'e'")
 if name.find('war') != -1:
-	print("Yes, it contains the string 'war'")
+    print("Yes, it contains the string 'war'")
 delimiter = '_*_'
 mylist = ['Brazil', 'Russia', 'India', 'China']
 print(delimiter.join(mylist))

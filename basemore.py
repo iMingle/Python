@@ -4,7 +4,7 @@
 
 # 方法传送元组
 def get_error_details():
-	return (2, 'second error details')
+    return (2, 'second error details')
 
 errnum, errstr = get_error_details()
 print(errnum, errstr)
@@ -22,7 +22,7 @@ if True: print('True')
 
 # Lambda表达式,用来创建新的函数对象,只能使用表达式
 def make_repeater(n):
-	return lambda s: s*n
+    return lambda s: s*n
 
 twice = make_repeater(2)
 print(twice('work'))
@@ -38,11 +38,11 @@ listtwo = [2*i for i in listone if i > 2]
 print(listtwo)
 
 def powersum(power, *args):
-	"""Return the sum of each argument raised to specified power."""
-	total = 0
-	for i in args:
-		total += pow(i, power)
-	return total
+    """Return the sum of each argument raised to specified power."""
+    total = 0
+    for i in args:
+        total += pow(i, power)
+    return total
 
 print(powersum(2, 3, 4))
 print(powersum(2, 10))

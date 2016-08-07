@@ -40,11 +40,11 @@ print(any(name.endswith('.py') for name in filenames))
 from urllib.request import urlopen
 
 def read_data(name):
-	if name.startswith(('http:', 'https:', 'ftp:')):
-		return urlopen(name).read()
-	else:
-		with open(name) as f:
-			return f.read()
+    if name.startswith(('http:', 'https:', 'ftp:')):
+        return urlopen(name).read()
+    else:
+        with open(name) as f:
+            return f.read()
 
 choices = ['http:', 'ftp:']
 url = 'http://www.python.org'
@@ -86,23 +86,23 @@ print(text.find('no'))
 text1 = '11/27/2016'
 text2 = 'Nov 27, 2016'
 if re.match(r'\d+/\d+/\d+', text1):
-	print('yes')
+    print('yes')
 else:
-	print('no')
+    print('no')
 if re.match(r'\d+/\d+/\d+', text2):
-	print('yes')
+    print('yes')
 else:
-	print('no')
+    print('no')
 
 datepat = re.compile(r'\d+/\d+/\d+')
 if datepat.match(text1):
-	print('yes')
+    print('yes')
 else:
-	print('no')
+    print('no')
 if datepat.match(text2):
-	print('yes')
+    print('yes')
 else:
-	print('no')
+    print('no')
 
 text = 'Today is 11/27/2016. PyCon starts 3/13/2013.'
 print(datepat.findall(text))
@@ -117,10 +117,10 @@ print(m.groups())
 month, day, year = m.groups()
 print(datepat.findall(text))
 for month, day, year in datepat.findall(text):
-	print('{}-{}-{}'.format(year, month, day))
+    print('{}-{}-{}'.format(year, month, day))
 
 for m in datepat.finditer(text):
-	print(m.groups())
+    print(m.groups())
 
 #5 查找和替换文本
 text = 'yeah, but no, but yeah, but no, but yeah'
@@ -134,8 +134,8 @@ print(datepat.sub(r'\3-\1-\2', text))
 from calendar import month_abbr
 
 def change_date(m):
-	mon_name = month_abbr[int(m.group(1))]
-	return '{} {} {}'.format(m.group(2), mon_name, m.group(3))
+    mon_name = month_abbr[int(m.group(1))]
+    return '{} {} {}'.format(m.group(2), mon_name, m.group(3))
 print(datepat.sub(change_date, text))
 
 newtext, n = datepat.subn(r'\3-\1-\2', text)
@@ -150,18 +150,18 @@ print(re.sub('python', 'snake', text))
 print(re.sub('python', 'snake', text, flags=re.IGNORECASE))
 
 def matchcase(word):
-	"""替换的文本和匹配的文本大小写吻合"""
-	def replace(m):
-		text = m.group()
-		if text.isupper():
-			return word.upper()
-		elif text.islower():
-			return word.lower()
-		elif text[0].isupper():
-			return word.capitalize()
-		else:
-			return word
-	return replace
+    """替换的文本和匹配的文本大小写吻合"""
+    def replace(m):
+        text = m.group()
+        if text.isupper():
+            return word.upper()
+        elif text.islower():
+            return word.lower()
+        elif text[0].isupper():
+            return word.capitalize()
+        else:
+            return word
+    return replace
 print(re.sub('python', matchcase('snake'), text, flags=re.IGNORECASE))
 
 #7 定义实现最短匹配的正则表达式
@@ -180,7 +180,7 @@ print(str_pat.findall(text2))
 comment = re.compile(r'/\*(.*?)\*/')
 text1 = '/* this is a comment */'
 text2 = """/* this is a
-	multiline comment */
+    multiline comment */
 """
 print(comment.findall(text1))
 print(comment.findall(text2))
