@@ -248,3 +248,159 @@ net6 = ipaddress.ip_network('12:3456:78:90ab:cd:ef01:23:30/125')
 print(net6)
 for a in net6:
     print(a)
+
+print(net.num_addresses)
+print(net6[0])
+print(net6[1])
+print(net6[-1])
+print(net6[-2])
+
+a = ipaddress.ip_address('123.45.67.69')
+print(a in net)
+b = ipaddress.ip_address('123.45.67.123')
+print(b in net)
+
+inet = ipaddress.ip_interface('123.45.67.73/27')
+print(inet.network)
+print(inet.ip)
+
+#5 创建基于REST风格的简单接口
+import cgi
+
+def notfound_404(environ, start_response):
+    start_response('404 Not Found', [('Content-type', 'text/plain')])
+    return [b'Not Found']
+
+class PathDispatcher:
+    def __init__(self):
+        self.pathmap = {}
+
+    def __call__(self, environ, start_response):
+        path = environ['PATH_INFO']
+        params = cgi.FieldStorage(environ['wsgi.input'], environ=environ)
+        method = environ['REQUEST_METHOD'].lower()
+        environ['params'] = {key: params.getvalue(key) for key in params}
+        handler = self.pathmap.get((method, path), notfound_404)
+        return handler(environ, start_response)
+
+    def register(self, method, path, function):
+        self.pathmap[method.lower(), path] = function
+        return function
+
+_hello_resp = """\
+<html>
+  <head>
+     <title>Hello {name}</title>
+   </head>
+   <body>
+     <h1>Hello {name}!</h1>
+   </body>
+</html>"""
+
+def hello_world(environ, start_response):
+    start_response('200 OK', [ ('Content-type','text/html')])
+    params = environ['params']
+    resp = _hello_resp.format(name=params.get('name'))
+    yield resp.encode('utf-8')
+
+_localtime_resp = """\
+<?xml version="1.0"?>
+<time>
+  <year>{t.tm_year}</year>
+  <month>{t.tm_mon}</month>
+  <day>{t.tm_mday}</day>
+  <hour>{t.tm_hour}</hour>
+  <minute>{t.tm_min}</minute>
+  <second>{t.tm_sec}</second>
+</time>"""
+
+def localtime(environ, start_response):
+    start_response('200 OK', [ ('Content-type', 'application/xml') ])
+    resp = _localtime_resp.format(t=time.localtime())
+    yield resp.encode('utf-8')
+
+TEST_REST = False
+
+if __name__ == '__main__' and TEST_REST:
+    # from resty import PathDispatcher
+    from wsgiref.simple_server import make_server
+
+    # create the dispatcher and register functions
+    dispatcher = PathDispatcher()
+    dispatcher.register('GET', '/hello', hello_world)
+    dispatcher.register('GET', '/localtime', localtime)
+
+    # launch a basic server
+    httpd = make_server('', 8080, dispatcher)
+    print('Serving on port 8080...')
+    httpd.serve_forever()
+
+#6 利用XML-RPC实现简单的远程过程调用
+from xmlrpc.server import SimpleXMLRPCServer
+
+class KeyValueServer:
+    _rpc_methods_ = ['get', 'set', 'delete', 'exists', 'keys']
+    def __init__(self, address):
+        self._data = {}
+        self._serv = SimpleXMLRPCServer(address, allow_none=True)
+        for name in self._rpc_methods_:
+            self._serv.register_function(getattr(self, name))
+
+    def get(self, name):
+        return self._data[name]
+
+    def set(self, name, value):
+        self._data[name] = value
+
+    def delete(self, name):
+        del self._data[name]
+
+    def exists(self, name):
+        return name in self._data
+
+    def keys(self):
+        return list(self._data)
+
+    def serve_forever(self):
+        self._serv.serve_forever()
+
+TEST_XML_RPC = False
+
+if __name__ == '__main__' and TEST_XML_RPC:
+    kvserv = KeyValueServer(('', 15000))
+    print('Serving on port 15000...')
+    kvserv.serve_forever()
+
+#7 在不同的解释器间进行通信
+from multiprocessing.connection import Listener
+import traceback
+
+def echo_client(conn):
+    try:
+        while True:
+            msg = conn.recv()
+            conn.send(msg)
+    except EOFError:
+        print('connection closed')
+
+def echo_server(address, authkey):
+    serv = Listener(address, authkey=authkey)
+    try:
+        while True:
+            client = serv.accept()
+            echo_client(client)
+    except Exception:
+        traceback.print_exc()
+
+TEST_MULTI_PROC = False
+
+if TEST_MULTI_PROC:
+    print('Serving on port 25000...')
+    echo_server(('', 25000), authkey=b'peekaboo')
+
+#8 实现远程过程调用
+
+
+#9 以简单的方式验证客户端身份
+
+#10 为网络服务增加SSL支持
