@@ -60,3 +60,57 @@ if TEST_MULTI_PROC:
     print(c.recv())
     c.send([1, 2, 3, 4, 5])
     print(c.recv())
+
+# 远程过程调用
+TEST_RPC = False
+
+if TEST_RPC:
+    import pickle
+    class RPCProxy:
+        def __init__(self, connection):
+            super(RPCProxy, self).__init__()
+            self._connection = connection
+
+        def __getattr__(self, name):
+            def do_rpc(*args, **kwargs):
+                self._connection.send(pickle.dumps((name, args, kwargs)))
+                result = pickle.loads(self._connection.recv())
+                if isinstance(result, Exception):
+                    raise result
+                return result
+            return do_rpc
+
+    from multiprocessing.connection import Client
+    c = Client(('localhost', 17000), authkey=b'peekaboo')
+    proxy = RPCProxy(c)
+    print(proxy.add(2, 3))
+    print(proxy.sub(2, 3))
+    try:
+        proxy.sub([1, 2], 4)
+    except Exception as e:
+        print(e)
+
+# 以简单的方式验证客户端身份
+import hmac
+import os
+
+def client_authenticate(connection, secret_key):
+    """authenticate client to a remote service.
+    connection represents a network connection.
+    secret_key is a key known only to both client/server."""
+    message = os.urandom(32)
+    hash = hmac.new(secret_key, message)
+    digest = hash.digest()
+    connection.send(digest)
+
+TEST_AUTH = False
+
+if TEST_AUTH:
+    secret_key = b'peekaboo'
+    s = socket(AF_INET, SOCK_STREAM)
+    s.connect(('localhost', 18000))
+    client_authenticate(s, secret_key)
+    s.send(b'Hello World')
+    resp = s.recv(1024)
+    print(resp)
+

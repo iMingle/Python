@@ -399,8 +399,97 @@ if TEST_MULTI_PROC:
     echo_server(('', 25000), authkey=b'peekaboo')
 
 #8 实现远程过程调用
+import pickle
+from threading import Thread
 
+class RPCHandler:
+    """docstring for RPCHandler"""
+    def __init__(self):
+        self._functions = {}
+
+    def register_function(self, func):
+        self._functions[func.__name__] = func
+
+    def handle_connection(self, connection):
+        try:
+            while True:
+                # receive a message
+                func_name, args, kwargs = pickle.loads(connection.recv())
+                # run the rpc and send a response
+                try:
+                    r = self._functions[func_name](*args, **kwargs)
+                    connection.send(pickle.dumps(r))
+                except Exception as e:
+                    connection.send(pickle.dumps(e))
+        except EOFError:
+            pass
+
+def rpc_server(handler, address, authkey):
+    sock = Listener(address, authkey=authkey)
+    while True:
+        client = sock.accept()
+        t = Thread(target=handler.handle_connection, args=(client,))
+        t.daemon = True
+        t.start()
+
+# some remote functions
+def add(x, y):
+    return x + y
+
+def sub(x, y):
+    return x - y
+
+# register with a handler
+handler = RPCHandler()
+handler.register_function(add)
+handler.register_function(sub)
+
+# run the server
+TEST_RPC = False
+
+if TEST_RPC:
+    print('Serving on port 17000...')
+    rpc_server(handler, ('localhost', 17000), authkey=b'peekaboo')
 
 #9 以简单的方式验证客户端身份
+import hmac
+import os
+
+def server_authenticate(connection, secret_key):
+    """request client authentication."""
+    message = os.urandom(32)
+    connection.send(message)
+    hash = hmac.new(secret_key, message)
+    digest = hash.digest()
+    response = connection.recv(len(digest))
+    return hmac.compare_digest(digest, response)
+
+secret_key = b'peekaboo'
+def echo_handler(client_sock):
+    if not server_authenticate(client_sock, secret_key):
+        client_sock.close()
+        return
+    while True:
+        msg = client_sock.recv(8192)
+        if not msg:
+            break
+        client_sock.sendall(msg)
+
+def echo_server(address):
+    s = socket(AF_INET, SOCK_STREAM)
+    s.bind(address)
+    s.listen(5)
+    while True:
+        c, a = s.accept()
+        echo_handler(c)
+
+TEST_AUTH = False
+
+if TEST_AUTH:
+    print('Serving on port 18000...')
+    echo_server(('', 18000))
 
 #10 为网络服务增加SSL支持
+
+
+#11 在进程间传递socket文件描述符
