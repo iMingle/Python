@@ -490,6 +490,476 @@ if TEST_AUTH:
     echo_server(('', 18000))
 
 #10 为网络服务增加SSL支持
+import ssl
+
+KEYFILE = 'data/server_key.pem' # private key of the server
+CERTFILE = 'data/server_cert.pem' # server certificate (given to client)
+
+def echo_client(s):
+    while True:
+        data = s.recv(8192)
+        if data == b'':
+            break
+        s.send(data)
+    s.close()
+    print('collention closed')
+
+def echo_server(address):
+    s = socket(AF_INET, SOCK_STREAM)
+    s.bind(address)
+    s.listen(1)
+    # wrap with an SSL layer requiring client certs
+    s_ssl = ssl.wrap_socket(s, keyfile=KEYFILE, certfile=CERTFILE, server_side=True)
+    # wait for connections
+    while True:
+        try:
+            c, a = s_ssl.accept()
+            print('get connection', c, a)
+            echo_client(c)
+        except Exception as e:
+            print('{}: {}'.format(e.__class__.__name__, e))
+
+TEST_SSL = False
+
+if TEST_SSL:
+    print('Serving on port 20000...')
+    echo_server(('', 20000))
+
+class SSLMixin:
+    """mixin class that support for SSL to existing servers based on the socketserver module."""
+    def __init__(self, *args, keyfile=None, certfile=None, ca_certs=None, 
+        cert_reqs=ssl.CERT_NONE, **kwargs):
+        self._keyfile = keyfile
+        self._certfile = certfile
+        self._ca_certs = ca_certs
+        self._cert_reqs = cert_reqs
+        super().__init__(*args, **kwargs)
+
+    def get_request(self):
+        client, addr = super().get_request()
+        client_ssl = ssl.wrap_socket(client,
+                                     keyfile = self._keyfile,
+                                     certfile = self._certfile,
+                                     ca_certs = self._ca_certs,
+                                     cert_reqs = self._cert_reqs,
+                                     server_side = True)
+        return client_ssl, addr
+
+class SSLSimpleXMLRPCServer(SSLMixin, SimpleXMLRPCServer):
+    pass
+
+class KeyValueServer:
+    _rpc_methods_ = ['get', 'set', 'delete', 'exists', 'keys']
+    def __init__(self, *args, **kwargs):
+        self._data = {}
+        self._serv = SSLSimpleXMLRPCServer(*args, allow_none=True, **kwargs)
+        for name in self._rpc_methods_:
+            self._serv.register_function(getattr(self, name))
+
+    def get(self, name):
+        return self._data[name]
+
+    def set(self, name, value):
+        self._data[name] = value
+
+    def delete(self, name):
+        del self._data[name]
+
+    def exists(self, name):
+        return name in self._data
+
+    def keys(self):
+        return list(self._data)
+
+    def serve_forever(self):
+        self._serv.serve_forever()
+
+TEST_SSL_HTTP = False
+
+if TEST_SSL_HTTP:
+    KEYFILE='data/server_key.pem'   # Private key of the server
+    CERTFILE='data/server_cert.pem' # Server certificate
+    CA_CERTS='data/client_cert.pem' # Certificates of accepted clients
+
+    kvserv = KeyValueServer(('', 15000),
+                            keyfile=KEYFILE,
+                            certfile=CERTFILE,
+                            ca_certs=CA_CERTS,
+                            cert_reqs=ssl.CERT_REQUIRED)
+    print('Serving on port 15000...')
+    kvserv.serve_forever()
+
 
 
 #11 在进程间传递socket文件描述符
+from multiprocessing.reduction import recv_handle, send_handle
+import socket
+
+def worker(in_p, out_p):
+    out_p.close()
+    while True:
+        fd = recv_handle(in_p)
+        print('child: got fd', fd)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM, fileno=fd) as s:
+            while True:
+                msg = s.recv(1024)
+                if not msg:
+                    break
+                print('child: recv {!r}'.format(msg))
+                s.send(msg)
+
+def server(address, in_p, out_p, worker_pid):
+    in_p.close()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+    s.bind(address)
+    s.listen(1)
+    while True:
+        client, addr = s.accept()
+        print('server: got connection from', addr)
+        send_handle(out_p, client.fileno(), worker_pid)
+        client.close()
+
+import multiprocessing
+
+if __name__ == '__main__' and False:
+    c1, c2 = multiprocessing.Pipe()
+    worker_p = multiprocessing.Process(target=worker, args=(c1, c2))
+    worker_p.start()
+
+    server_p = multiprocessing.Process(target=server, args=(('', 15000), c1, c2, worker_p.pid))
+    server_p.start()
+
+    c1.close();
+    c2.close();
+
+# 将服务器和工作者进程实现为完全分离的程序,分别启动
+# server
+def server(work_address, port):
+    # wait for the worker to connect
+    work_serv = Listener(work_address, authkey=b'peekaboo')
+    worker = work_serv.accept()
+    worker_pid = worker.recv()
+
+    # now run a TCP/IP server and send clients to worker
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+    s.bind(('', port))
+    s.listen(1)
+    while True:
+        client, addr = s.accept()
+        print('SERVER: Got connection from', addr)
+        send_handle(worker, client.fileno(), worker_pid)
+        client.close()
+    
+if __name__ == '__main__' and False:
+    import sys
+    if len(sys.argv) != 3:
+        print('Usage1: server.py server_address port', file=sys.stderr)
+        raise SystemExit(1)
+
+    server(sys.argv[1], int(sys.argv[2]))
+
+# worker
+def worker(server_address):
+    serv = Client(server_address, authkey=b'peekaboo')
+    serv.send(os.getpid())
+    while True:
+        fd = recv_handle(serv)
+        print('WORKER: GOT FD', fd)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM, fileno=fd) as client:
+            while True:
+                msg = client.recv(1024)
+                if not msg:
+                    break
+                print('WORKER: RECV {!r}'.format(msg))
+                client.send(msg)
+    
+if __name__ == '__main__' and False:
+    import sys
+    if len(sys.argv) != 2:
+        print('Usage1: worker.py server_address', file=sys.stderr)
+        raise SystemExit(1)
+
+    worker(sys.argv[1])
+
+# 利用socket来传递文件描述符
+def send_fd(sock, fd):
+    '''
+    Send a single file descriptor.
+    '''
+    sock.sendmsg([b'x'],
+                 [(socket.SOL_SOCKET, socket.SCM_RIGHTS, struct.pack('i', fd))])
+    ack = sock.recv(2)
+    assert ack == b'OK'
+
+def server(work_address, port):
+    # Wait for the worker to connect
+    work_serv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    work_serv.bind(work_address)
+    work_serv.listen(1)
+    worker, addr = work_serv.accept()
+
+    # Now run a TCP/IP server and send clients to worker
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+    s.bind(('',port))
+    s.listen(1)
+    while True:
+        client, addr = s.accept()
+        print('SERVER: Got connection from', addr)
+        send_fd(worker, client.fileno())
+        client.close()
+    
+if __name__ == '__main__' and False:
+    import sys
+    if len(sys.argv) != 3:
+        print('Usage2: server.py server_address port', file=sys.stderr)
+        raise SystemExit(1)
+
+    server(sys.argv[1], int(sys.argv[2]))
+
+def recv_fd(sock):
+    '''
+    Receive a single file descriptor
+    '''
+    msg, ancdata, flags, addr = sock.recvmsg(1,
+                                             socket.CMSG_LEN(struct.calcsize('i')))
+
+    cmsg_level, cmsg_type, cmsg_data = ancdata[0]
+    assert cmsg_level == socket.SOL_SOCKET and cmsg_type == socket.SCM_RIGHTS
+    sock.sendall(b'OK')
+    return struct.unpack('i', cmsg_data)[0]
+
+import socket
+
+def worker(server_address):
+    serv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    serv.connect(server_address)
+    while True:
+        fd = recv_fd(serv)
+        print('WORKER: GOT FD', fd)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM, fileno=fd) as client:
+            while True:
+                msg = client.recv(1024)
+                if not msg:
+                    break
+                print('WORKER: RECV {!r}'.format(msg))
+                client.send(msg)
+    
+if __name__ == '__main__' and False:
+    import sys
+    if len(sys.argv) != 2:
+        print('Usage2: worker.py server_address', file=sys.stderr)
+        raise SystemExit(1)
+
+    worker(sys.argv[1])
+
+#12 理解事件驱动型I/O
+class EventHandler:
+    def fileno(self):
+        'Return the associated file descriptor'
+        raise NotImplemented('must implement')
+
+    def wants_to_receive(self):
+        'Return True if receiving is allowed'
+        return False
+
+    def handle_receive(self):
+        'Perform the receive operation'
+        pass
+
+    def wants_to_send(self):
+        'Return True if sending is requested' 
+        return False
+
+    def handle_send(self):
+        'Send outgoing data'
+        pass
+
+import select
+
+def event_loop(handlers):
+    while True:
+        wants_recv = [h for h in handlers if h.wants_to_receive()]
+        wants_send = [h for h in handlers if h.wants_to_send()]
+        can_recv, can_send, _ = select.select(wants_recv, wants_send, [])
+        for h in can_recv:
+            h.handle_receive()
+        for h in can_send:
+            h.handle_send()
+
+            import socket
+import time
+
+class UDPServer(EventHandler):
+    def __init__(self, address):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind(address)
+
+    def fileno(self):
+        return self.sock.fileno()
+
+    def wants_to_receive(self):
+        return True
+
+class UDPTimeServer(UDPServer):
+    def handle_receive(self):
+        msg, addr = self.sock.recvfrom(1)
+        self.sock.sendto(time.ctime().encode('ascii'), addr)
+
+class UDPEchoServer(UDPServer):
+    def handle_receive(self):
+        msg, addr = self.sock.recvfrom(8192)
+        self.sock.sendto(msg, addr)
+
+TEST_EVENT_HANDLER_UDP = False
+
+if __name__ == '__main__' and TEST_EVENT_HANDLER_UDP:
+    handlers = [ UDPTimeServer(('',14000)), UDPEchoServer(('',15000))  ]
+    event_loop(handlers)
+
+class TCPServer(EventHandler):
+    def __init__(self, address, client_handler, handler_list):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+        self.sock.bind(address)
+        self.sock.listen(1)
+        self.client_handler = client_handler
+        self.handler_list = handler_list
+
+    def fileno(self):
+        return self.sock.fileno()
+
+    def wants_to_receive(self):
+        return True
+
+    def handle_receive(self):
+        client, addr = self.sock.accept()
+        # Add the client to the event loop's handler list
+        self.handler_list.append(self.client_handler(client, self.handler_list))
+
+class TCPClient(EventHandler):
+    def __init__(self, sock, handler_list):
+        self.sock = sock
+        self.handler_list = handler_list
+        self.outgoing = bytearray()
+
+    def fileno(self):
+        return self.sock.fileno()
+
+    def close(self):
+        self.sock.close()
+        # Remove myself from the event loop's handler list
+        self.handler_list.remove(self)
+        
+    def wants_to_send(self):
+        return True if self.outgoing else False
+
+    def handle_send(self):
+        nsent = self.sock.send(self.outgoing)
+        self.outgoing = self.outgoing[nsent:]
+
+class TCPEchoClient(TCPClient):
+    def wants_to_receive(self):
+        return True
+    
+    def handle_receive(self):
+        data = self.sock.recv(8192)
+        if not data:
+            self.close()
+        else:
+            self.outgoing.extend(data)
+
+TEST_EVENT_HANDLER_TCP = False
+
+if __name__ == '__main__' and TEST_EVENT_HANDLER_TCP:
+   handlers = []
+   handlers.append(TCPServer(('',16000), TCPEchoClient, handlers))
+   event_loop(handlers)
+
+from concurrent.futures import ThreadPoolExecutor
+
+class ThreadPoolHandler(EventHandler):
+    def __init__(self, nworkers):
+        self.signal_done_sock, self.done_sock = socket.socketpair()
+        self.pending = []
+        self.pool = ThreadPoolExecutor(nworkers)
+
+    def fileno(self):
+        return self.done_sock.fileno()
+
+    # Callback that executes when the thread is done
+    def _complete(self, callback, r):
+        self.pending.append((callback, r.result()))
+        self.signal_done_sock.send(b'x')
+
+    # Run a function in a thread pool
+    def run(self, func, args=(), kwargs={},*,callback):
+        r = self.pool.submit(func, *args, **kwargs)
+        r.add_done_callback(lambda r: self._complete(callback, r))
+
+    def wants_to_receive(self):
+        return True
+
+    # Run callback functions of completed work
+    def handle_receive(self):
+        # Invoke all pending callback functions 
+        for callback, result in self.pending:
+            callback(result)
+            self.done_sock.recv(1)
+        self.pending = []
+
+# A really bad fibonacci implementation
+def fib(n):
+    if n < 2:
+        return 1
+    else:
+        return fib(n - 1) + fib(n - 2)
+
+class UDPServer(EventHandler):
+    def __init__(self, address):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind(address)
+
+    def fileno(self):
+        return self.sock.fileno()
+
+    def wants_to_receive(self):
+        return True
+    
+class UDPFibServer(UDPServer):
+    def handle_receive(self):
+        msg, addr = self.sock.recvfrom(128)
+        n = int(msg)
+        pool.run(fib, (n,), callback=lambda r: self.respond(r, addr))
+
+    def respond(self, result, addr):
+        self.sock.sendto(str(result).encode('ascii'), addr)
+
+TEST_EVENT_HANDLER_THREAD = False
+
+if __name__ == '__main__' and TEST_EVENT_HANDLER_THREAD:
+    pool = ThreadPoolHandler(16)
+    handlers = [pool, UDPFibServer(('', 16000))]
+    event_loop(handlers)
+
+#13 发送和接受大型数组
+# 利用memoryview对大型数组进行发送和接受
+def send_from(arr, dest):
+    view = memoryview(arr).cast('B') # 转为无符号字节
+    while len(view):
+        nsent = dest.send(view)
+        view = view[nsent:]
+
+TEST_BIG_ARR = True
+
+if TEST_BIG_ARR:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('', 25000))
+    s.listen(1)
+    c, a = s.accept()
+    import numpy
+    a = numpy.arange(0.0, 50000000.0)
+    send_from(a, c)
+    c.close()

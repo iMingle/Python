@@ -114,3 +114,106 @@ if TEST_AUTH:
     resp = s.recv(1024)
     print(resp)
 
+# SSL
+import ssl
+
+TEST_SSL = False
+
+if TEST_SSL:
+    s = socket(AF_INET, SOCK_STREAM)
+    s_ssl = ssl.wrap_socket(s, cert_reqs=ssl.CERT_REQUIRED, ca_certs='data/server_cert.pem')
+    s_ssl.connect(('localhost', 20000))
+    s_ssl.send(b'hello world!')
+    print(s_ssl.recv(8192))
+
+# SSL HTTP
+from xmlrpc.client import SafeTransport, ServerProxy
+
+class VerifyCertSafeTransport(SafeTransport):
+    def __init__(self, cafile, certfile=None, keyfile=None):
+        super().__init__()
+        self._ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+        self._ssl_context.load_verify_locations(cafile)
+        if certfile:
+            self._ssl_context.load_cert_chain(certfile, keyfile)
+        self._ssl_context.verify_mode = ssl.CERT_REQUIRED
+
+    def make_connection(self, host):
+        s = super().make_connection((host, {'context': self._ssl_context}))
+
+        return s
+
+TEST_SSL_HTTP = False
+
+if TEST_SSL_HTTP:
+    # Create the client proxy
+    s = ServerProxy('https://localhost:15000', 
+                    transport=VerifyCertSafeTransport('data/server_cert.pem', 
+                    'data/client_cert.pem', 'data/client_key.pem'),
+                    allow_none=True)
+
+    try:
+        s.set('foo', 'bar')
+        s.set('spam', [1, 2, 3])
+        print(s.keys())
+        print(s.get('foo'))
+        print(s.get('spam'))
+        s.delete('spam')
+        print(s.exists('spam'))
+    except Exception as e:
+        print(e)
+
+# 事件处理I/O
+TEST_EVENT_HANDLER_UDP = False
+
+if TEST_EVENT_HANDLER_UDP:
+    from socket import *
+    s = socket(AF_INET, SOCK_DGRAM)
+    s.sendto(b'', ('localhost', 14000))
+    print(s.recvfrom(128))
+
+    s.sendto(b'Hello', ('localhost', 15000))
+    print(s.recvfrom(128))
+
+TEST_EVENT_HANDLER_TCP = False
+
+if TEST_EVENT_HANDLER_TCP:
+    from socket import socket, AF_INET, SOCK_STREAM
+
+    s = socket(AF_INET, SOCK_STREAM)
+    s.connect(('localhost', 16000))
+    s.send(b'Hello\n')
+    print('Got:', s.recv(8192))
+    s.close()
+
+TEST_EVENT_HANDLER_THREAD = False
+
+if TEST_EVENT_HANDLER_THREAD:
+    from socket import *
+    sock = socket(AF_INET, SOCK_DGRAM)
+    for x in range(40):
+        sock.sendto(str(x).encode('ascii'), ('localhost', 16000))
+        resp = sock.recvfrom(8192)
+        print(resp[0])
+
+# 发送和接受大型数组
+def recv_into(arr, source):
+    view = memoryview(arr).cast('B') # 转为无符号字节
+    while len(view):
+        nrecv = source.recv_into(view)
+        view = view[nrecv:]
+
+TEST_BIG_ARR = True
+
+if TEST_BIG_ARR:
+    from socket import *
+
+    c = socket(AF_INET, SOCK_STREAM)
+    c.connect(('localhost', 25000))
+
+    import numpy
+    a = numpy.zeros(shape=50000000, dtype=float)
+    print(a[0:10])
+    recv_into(a, c)
+    print(a[0:10])
+    print(a[-10:])
