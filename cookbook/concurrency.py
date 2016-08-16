@@ -639,3 +639,255 @@ if __name__ == '__main__':
     pool = multiprocessing.Pool()
 
 #10 定义一个Actor任务
+# sentinel used for shutdown
+class ActorExit(Exception):
+    pass
+
+class Actor:
+    def __init__(self):
+        self._mailbox = Queue()
+
+    def send(self, msg):
+        self._mailbox.put(msg)
+
+    def recv(self):
+        msg = self._mailbox.get()
+        if msg is ActorExit:
+            raise ActorExit()
+        return msg
+    
+    def close(self):
+        self.send(ActorExit)
+
+    def start(self):
+        self._terminated = Event()
+        t = Thread(target=self._bootstrap)
+        t.daemon = True
+        t.start()
+
+    def _bootstrap(self):
+        try:
+            self.run()
+        except ActorExit:
+            pass
+        finally:
+            self._terminated.set()
+
+    def join(self):
+        self._terminated.wait()
+
+    def run(self):
+        while True:
+            msg = self.recv()
+
+class PrintActor(Actor):
+    def run(self):
+        while True:
+            msg = self.recv()
+            print('got:', msg)
+
+if __name__ == '__main__':
+    p = PrintActor()
+    p.start()
+    p.send('hello')
+    p.send('world')
+    p.close()
+    p.join()
+
+class TaggedActor(Actor):
+    def run(self):
+        while True:
+             tag, *payload = self.recv()
+             getattr(self, 'do_' + tag)(*payload)
+    
+    # methods correponding to different message tags
+    def do_A(self, x):
+        print("running A", x)
+
+    def do_B(self, x, y):
+        print("running B", x, y)
+
+if __name__ == '__main__':
+    a = TaggedActor()
+    a.start()
+    a.send(('A', 1)) # invokes do_A(1)
+    a.send(('B', 2, 3)) # invokes do_B(2,3)
+    a.close()
+    a.join()
+
+class Result:
+    def __init__(self):
+        self._evt = Event()
+        self._result = None
+
+    def set_result(self, value):
+        self._result = value
+        self._evt.set()
+
+    def result(self):
+        self._evt.wait()
+        return self._result
+
+class Worker(Actor):
+    def submit(self, func, *args, **kwargs):
+        r = Result()
+        self.send((func, args, kwargs, r))
+        return r
+
+    def run(self):
+        while True:
+            func, args, kwargs, r = self.recv()
+            r.set_result(func(*args, **kwargs))
+
+if __name__ == '__main__':
+    worker = Worker()
+    worker.start()
+    r = worker.submit(pow, 2, 3)
+    print(r.result())
+    worker.close()
+    worker.join()
+
+#11 实现发布者/订阅者消息模式
+from collections import defaultdict
+
+class Exchange:
+    def __init__(self):
+        self._subscribers = set()
+
+    def attach(self, task):
+        self._subscribers.add(task)
+
+    def detach(self, task):
+        self._subscribers.remove(task)
+
+    def send(self, msg):
+        for subscriber in self._subscribers:
+            subscriber.send(msg)
+
+# dictionary of all created exchanges
+_exchanges = defaultdict(Exchange)
+
+# return the Exchange instance associated with a given name
+def get_exchange(name):
+    return _exchanges[name]
+
+if __name__ == '__main__':
+    # example task (just for testing)
+    class Task:
+        def __init__(self, name):
+            self.name = name
+
+        def send(self, msg):
+            print('{} got: {!r}'.format(self.name, msg))
+
+    task_a = Task('A')
+    task_b = Task('B')
+
+    exc = get_exchange('spam')
+    exc.attach(task_a)
+    exc.attach(task_b)
+    exc.send('msg1')
+    exc.send('msg2')
+
+    exc.detach(task_a)
+    exc.detach(task_b)
+    exc.send('msg3')
+
+class Exchange:
+    def __init__(self):
+        self._subscribers = set()
+
+    def attach(self, task):
+        self._subscribers.add(task)
+
+    def detach(self, task):
+        self._subscribers.remove(task)
+
+    @contextmanager
+    def subscribe(self, *tasks):
+        for task in tasks:
+            self.attach(task)
+        try:
+            yield
+        finally:
+            for task in tasks:
+                self.detach(task)
+
+    def send(self, msg):
+        for subscriber in self._subscribers:
+            subscriber.send(msg)
+
+# dictionary of all created exchanges
+_exchanges = defaultdict(Exchange)
+
+# return the Exchange instance associated with a given name
+def get_exchange(name):
+    return _exchanges[name]
+
+if __name__ == '__main__':
+    # example task (just for testing)
+    class Task:
+        def __init__(self, name):
+            self.name = name
+
+        def send(self, msg):
+            print('{} got: {!r}'.format(self.name, msg))
+
+    task_a = Task('A')
+    task_b = Task('B')
+
+    exc = get_exchange('spam')
+    with exc.subscribe(task_a, task_b):
+        exc.send('msg1')
+        exc.send('msg2')
+
+    exc.send('msg3')
+
+#12 使用生成器作为线程的替代方案
+# a very simple example of a coroutine/generator scheduler
+# two simple generator functions
+def countdown(n):
+    while n > 0:
+        print('t-minus', n)
+        yield
+        n -= 1
+    print('blastoff!')
+
+def countup(n):
+    x = 0
+    while x < n:
+        print('counting up', x)
+        yield
+        x += 1
+
+from collections import deque
+
+class TaskScheduler:
+    def __init__(self):
+        self._task_queue = deque()
+
+    def new_task(self, task):
+        """admit a newly started task to the scheduler"""
+        self._task_queue.append(task)
+
+    def run(self):
+        """run until there are no more tasks"""
+        while self._task_queue:
+            task = self._task_queue.popleft()
+            try:
+                # run until the next yield statement
+                next(task)
+                self._task_queue.append(task)
+            except StopIteration:
+                # generator is no longer executing
+                pass
+
+sched = TaskScheduler()
+sched.new_task(countdown(10))
+sched.new_task(countdown(5))
+sched.new_task(countup(15))
+sched.run()
+
+#13 轮询多个线程队列
+
+#14 在UNIX上加载守护进程
