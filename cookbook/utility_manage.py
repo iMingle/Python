@@ -125,7 +125,22 @@ if COPY_TEST:
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns('*~', '*.pyc'))
 
 #8 创建和解包归档文件
-print(shutil.get_archive_formats())
-shutil.make_archive('py35', 'zip', './data')
-shutil.unpack_archive('py35.zip', './extract')
+ARCHIVE_TEST = False
+if ARCHIVE_TEST:
+    print(shutil.get_archive_formats())
+    shutil.make_archive('py35', 'zip', './data')
+    shutil.unpack_archive('py35.zip', './extract')
 
+#9 通过名称来查找文件
+
+#10 读取配置文件
+
+#11 给脚本添加日志记录
+
+#12 给库添加日志记录
+
+#13 创建一个秒表计时器
+
+#14 给内存和CPU使用量设定限制
+
+#15 加载Web浏览器
