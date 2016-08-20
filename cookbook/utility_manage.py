@@ -132,15 +132,160 @@ if ARCHIVE_TEST:
     shutil.unpack_archive('py35.zip', './extract')
 
 #9 通过名称来查找文件
+import os
+
+def findfile(start, name):
+    for relpath, dirs, files in os.walk(start):
+        if name in files:
+            full_path = os.path.join(start, relpath, name)
+            print(os.path.normpath(os.path.abspath(full_path)))
+
+if __name__ == '__main__':
+    findfile('.', 'data.json')
+
+import time
+
+def modified_within(top, seconds):
+    now = time.time()
+    for path, dirs, files in os.walk(top):
+        for name in files:
+            fullpath = os.path.join(path, name)
+            if os.path.exists(fullpath):
+                mtime = os.path.getmtime(fullpath)
+                if mtime > (now - seconds):
+                    print(fullpath)
+
+if __name__ == '__main__':
+    modified_within('.', 60*60*24*7)
 
 #10 读取配置文件
+from configparser import ConfigParser
+
+cfg = ConfigParser()
+cfg.read('data/config.ini')
+print('sections:', cfg.sections())
+print('installation:library', cfg.get('installation', 'library'))
+print('debug:log_errors', cfg.getboolean('debug', 'log_errors'))
+print('server:port', cfg.getint('server', 'port'))
+print('server:nworkers', cfg.getint('server', 'nworkers'))
+print('server:signature', cfg.get('server', 'signature'))
+
+cfg.set('server', 'port', '9000')
+cfg.set('debug', 'log_errors', 'False')
+cfg.write(sys.stdout)
 
 #11 给脚本添加日志记录
+import logging
+import logging.config
+
+def main():
+    # configure the logging system
+    logging.basicConfig(
+        filename='data/app.log',
+        level=logging.ERROR
+    )
+
+    # variables (to make the calls that follow work)
+    hostname = 'www.python.org'
+    item = 'spam'
+    filename = 'logging.csv'
+    mode = 'r'
+
+    # logging.config.fileConfig('data/logconfig.ini')
+
+    logging.critical('host %s unknown', hostname)
+    logging.error("couldn't find %r", item)
+    logging.warning('feature is deprecated')
+    logging.info('opening file %r, mode=%r', filename, mode)
+    logging.debug('got here')
+
+if __name__ == '__main__':
+    main()
 
 #12 给库添加日志记录
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
+def func():
+    log.critical('a critical error')
+    log.debug('a debug message')
 
 #13 创建一个秒表计时器
+class Timer:
+    def __init__(self, func=time.perf_counter):
+        super(Timer, self).__init__()
+        self.elapsed = 0.0
+        self._func = func
+        self._start = None
 
-#14 给内存和CPU使用量设定限制
+    def start(self):
+        if self._start is not None:
+            raise RuntimeError('already started')
+        self._start = self._func()
+
+    def stop(self):
+        if self._start is None:
+            raise RuntimeError('not started')
+        end = self._func()
+        self.elapsed += end - self._start
+        self._start = None
+
+    def reset(self):
+        self.elapsed = 0.0
+
+    @property
+    def running(self):
+        return self._start is not None
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, *args):
+        self.stop()
+
+if __name__ == '__main__':
+    def countdown(n):
+        while n > 0:
+            n -= 1
+
+    t = Timer()
+    t.start()
+    countdown(1000000)
+    t.stop()
+    print(t.elapsed)
+
+    t = Timer(time.process_time)
+    with t:
+        countdown(1000000)
+    print(t.elapsed)
+
+#14 给内存和CPU使用量设定限制(UNIX)
+import signal
+# import resource
+
+def time_exceeded(signo, frame):
+    print("time's up!")
+    raise SystemExit()
+
+def set_max_runtime(seconds):
+    # install the signal handler and set a resource limit
+    soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
+    resource.setrlimit(resource.RLIMIT_CPU, (seconds, hard))
+    signal.signal(signal.SIGXCPU, time_exceeded)
+
+def limit_memory(maxsize):
+    soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+    resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))
 
 #15 加载Web浏览器
+import webbrowser
+
+webbrowser.open('http://www.python.org')
+webbrowser.open_new('http://www.python.org')
+webbrowser.open_new_tab('http://www.python.org')
+try:
+    c = webbrowser.get('firefox')
+    c.open('http://www.python.org')
+except Exception as e:
+    print(e)
