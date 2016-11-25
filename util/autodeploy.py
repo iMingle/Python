@@ -1,8 +1,8 @@
 # 配置参数
-ip = '192.168.248.115' # 部署服务器地址
-remote_dir = '/opt/bms/' # 部署服务器项目目录
-local_dir = './dmall-bms-common-main/target/' # 本地打包文件的目录
-zipfile = 'dmall-bms-common-main-0.0.2-SNAPSHOT.zip' # 本地打包的zip文件
+ip = '127.0.0.1' # 部署服务器地址
+remote_dir = '/opt/project/' # 部署服务器项目目录
+local_dir = './project/target/' # 本地打包文件的目录
+zipfile = 'project.zip' # 本地打包的zip文件
 
 if __name__ == '__main__':
     import paramiko
@@ -10,8 +10,8 @@ if __name__ == '__main__':
 
     if os.system('mvn clean package') is 0:
         try:
-            username = 'meicai'
-            password = 'meicai123'
+            username = 'username'
+            password = 'password'
             port = 22
 
             #生成ssh客户端实例
