@@ -191,9 +191,9 @@ comment = re.compile(r'/\*(.*?)\*/', re.DOTALL)
 print(comment.findall(text2))
 
 #9 将Unicode文本统一表示为规范形式
-import io  
+import io_
 import sys
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf8') #改变标准输出的默认编码
+sys.stdout = io_.TextIOWrapper(sys.stdout.buffer, encoding='utf8') #改变标准输出的默认编码
 s1 = u'Spicy Jalape\u00f1o'
 s2 = u'Spicy Jalapen\u0303o'
 print(s1)

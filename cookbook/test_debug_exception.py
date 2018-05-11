@@ -3,7 +3,7 @@
 """
 
 #1 测试发送到stdout上的输出
-from io import StringIO
+from io_ import StringIO
 from unittest import TestCase
 from unittest.mock import patch
 

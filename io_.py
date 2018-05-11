@@ -34,11 +34,11 @@ When the work is done
 if you wanna make your work also fun:
     use Python!
 """
-f = open('poem.txt', 'w')
+f = open('./data/poem.txt', 'w')
 f.write(poem)
 f.close()
 
-f = open('poem.txt')
+f = open('./data/poem.txt')
 while True:
     line = f.readline()
     if len(line) == 0:
@@ -46,7 +46,7 @@ while True:
     print(line, end = '')
 f.close()
 
-shoplistfile = 'shoplist.data'
+shoplistfile = './data/shoplist.data'
 shoplist = ['apple','mango','carrot']
 f = open(shoplistfile, 'wb')
 pickle.dump(shoplist, f) #dump the object to a file

@@ -32,7 +32,7 @@ else:
     print('No exception was raised.')
 
 try:
-    f = open('poem.txt')
+    f = open('./data/poem.txt')
     while True:
         line = f.readline()
         if len(line) == 0:
@@ -46,6 +46,6 @@ finally:
     print('(Cleanig up: closed the file)')
 
 # 用with open就能使得在结束的时候自动关闭文件
-with open('poem.txt') as f:
+with open('./data/poem.txt') as f:
     for line in f:
         print(line, end = '')

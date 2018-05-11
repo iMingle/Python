@@ -659,10 +659,10 @@ def serialize(obj, stream):
         raise TypeError('expected an IStream')
 
 # 抽象基类允许其他的类向其注册,然后实现所需的接口
-import io
+import io_
 
 # register the built-in I/O classes as supporting our interface
-IStream.register(io.IOBase)
+IStream.register(io_.IOBase)
 # open a normal file and type check
 f = open('data/somefile.txt')
 print(isinstance(f, IStream))

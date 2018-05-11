@@ -84,16 +84,16 @@ else:
     print('file already exists!')
 
 #6 在字符串上执行I/O操作
-import io
-s = io.StringIO()
+import io_
+s = io_.StringIO()
 s.write('Hello World\n')
 print('this is a test', file=s)
 print(s.getvalue())
-s = io.StringIO('Hello\nWorld\n')
+s = io_.StringIO('Hello\nWorld\n')
 print(s.read(4))
 print(s.read())
 
-s = io.BytesIO()
+s = io_.BytesIO()
 s.write(b'binary data')
 print(s.getvalue())
 
@@ -205,7 +205,7 @@ print(time.ctime(os.path.getmtime('data/somefile.txt')))
 
 #13 获取目录内容的列表
 import sys
-sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
+sys.stdout = io_.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
 names = os.listdir('data')
 print(names)
 # get all regular files
@@ -257,11 +257,11 @@ except UnicodeEncodeError:
 #16 为已经打开的文件添加或修改编码方法
 import urllib.request
 u = urllib.request.urlopen('http://www.python.org')
-f = io.TextIOWrapper(u, encoding='utf-8')
+f = io_.TextIOWrapper(u, encoding='utf-8')
 text = f.read()
 print(text)
 print(sys.stdout.encoding)
-sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
+sys.stdout = io_.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
 print(sys.stdout.encoding)
 
 f = open('data/data.bin', 'w')

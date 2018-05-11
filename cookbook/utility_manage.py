@@ -4,8 +4,8 @@
 
 #1 通过重定向,管道或输入文件夹作为脚本的输入
 import sys
-import io
-sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
+import io_
+sys.stdout = io_.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
 
 import fileinput
 
