@@ -3,7 +3,7 @@
 """
 
 #1 测试发送到stdout上的输出
-from io_ import StringIO
+from base.io import StringIO
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -138,7 +138,7 @@ class Tests(unittest.TestCase):
 
     @unittest.skipIf(os.name=='posix', 'Not supported on Unix')
     def test_2(self):
-        import winreg
+        pass
 
     @unittest.skipUnless(platform.system() == 'Darwin', 'Mac specific test')
     def test_3(self):
@@ -258,8 +258,6 @@ try:
     func('hello')
 except:
     traceback.print_exc(file=sys.stderr)
-
-import pdb
 
 # pdb.pm() # 加载Python调试器
 

@@ -26,7 +26,7 @@ cities['Area square miles'] = pd.Series([46.87, 176.53, 97.92])
 cities['Population density'] = cities['Population'] / cities['Area square miles']
 print(cities)
 
-california_housing_dataframe = pd.read_csv("../../data/california_housing_train.csv", sep=",")
+california_housing_dataframe = pd.read_csv("./data/california_housing_train.csv", sep=",")
 print(california_housing_dataframe)
 print(california_housing_dataframe.describe())
 print(california_housing_dataframe.head())

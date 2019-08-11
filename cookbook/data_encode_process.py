@@ -169,8 +169,10 @@ print(a.y)
 #3 解析简单的XML文档
 from xml.etree.ElementTree import parse
 import sys
-import io_
-sys.stdout = io_.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
+from base import io
+
+
+sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
 
 # u = request.urlopen('http://planet.python.org/rss20.xml')
 # u = open('data/big.xml', 'rt', encoding='utf-8')

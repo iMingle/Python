@@ -429,7 +429,7 @@ for n in range(NSTICKS):
     t.join()
 
 #6 保存线程专有状态
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import AF_INET, SOCK_STREAM
 
 class LazyConnection:
     def __init__(self, address, family=AF_INET, type=SOCK_STREAM):
@@ -571,14 +571,14 @@ y = a.result()
 
 #8 实现简单的并行编程
 import gzip
-import io_
+from base import io
 import glob
 
 def find_robots(filename):
     """find all of the hosts that access robots.txt in a single log file"""
     robots = set()
     with gzip.open(filename) as f:
-        for line in io_.TextIOWrapper(f, encoding='ascii'):
+        for line in io.TextIOWrapper(f, encoding='ascii'):
             fields = line.split()
             if fields[6] == '/robots.txt':
                 robots.add(fields[0])

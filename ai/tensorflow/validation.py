@@ -18,7 +18,7 @@ pd.options.display.max_rows = 10
 pd.options.display.float_format = '{:.1f}'.format
 
 # 加载数据集
-california_housing_dataframe = pd.read_csv("../../data/california_housing_train.csv", sep=",")
+california_housing_dataframe = pd.read_csv("./data/california_housing_train.csv", sep=",")
 
 def preprocess_features(california_housing_dataframe):
     """Prepares input features from California housing data set.

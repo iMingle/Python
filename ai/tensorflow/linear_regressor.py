@@ -18,7 +18,7 @@ pd.options.display.max_rows = 10
 pd.options.display.float_format = '{:.1f}'.format
 
 # 加载数据集
-california_housing_dataframe = pd.read_csv("../../data/california_housing_train.csv", sep=",")
+california_housing_dataframe = pd.read_csv("./data/california_housing_train.csv", sep=",")
 
 # 将对数据进行随机化处理，以确保不会出现任何病态排序结果（可能会损害随机梯度下降法的效果）
 california_housing_dataframe = california_housing_dataframe.reindex(

@@ -1,13 +1,13 @@
 """File backup
 
 """
-
-# Important Files Backup
 import os
 import time
 import zipfile
 
-source = [r'C:\Users\mingle\Desktop\backup.txt']    # Notice we had to use double quotes inside the string for names with spaces in it.
+
+# Notice we had to use double quotes inside the string for names with spaces in it.
+source = [r'C:\Users\mingle\Desktop\backup.txt']
 target_dir = r'D:\Backup'
 
 if not os.path.exists(target_dir):

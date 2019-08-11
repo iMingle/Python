@@ -38,10 +38,10 @@ if __name__ == "__main__":
     sc = spark.sparkContext
 
     # 读取数据并创建RDD
-    rdd = sc.textFile('../data/california_housing/cal_housing.data')
+    rdd = sc.textFile('./data/california_housing/cal_housing.data')
 
     # 读取数据每个属性的定义并创建RDD
-    header = sc.textFile('../data/california_housing/cal_housing.domain')
+    header = sc.textFile('./data/california_housing/cal_housing.domain')
     rdd = rdd.map(lambda line: line.split(","))
 
     df = rdd.map(lambda line: Row(longitude=line[0],
