@@ -2,22 +2,25 @@
 
 """
 
+
 # Lambda表达式,用来创建新的函数对象,只能使用表达式
 def make_repeater(n):
-    return lambda s: s*n
+    return lambda s: s * n
+
 
 twice = make_repeater(2)
 print(twice("work"))
 print(twice(5))
 
 points = [{"x": 2, "y": 3}, {"x": 4, "y": 1}, {"x": 0, "y": 1}, {"x": 1, "y": 1}]
-points.sort(key = lambda point : point["x"]);
+points.sort(key=lambda point: point["x"])
 print(points)
 
 # 列表综合
 listone = [2, 3, 4]
-listtwo = [2*i for i in listone if i > 2]
+listtwo = [2 * i for i in listone if i > 2]
 print(listtwo)
+
 
 def powersum(power, *args):
     '''Return the sum of each argument raised to specified power.'''
@@ -25,6 +28,7 @@ def powersum(power, *args):
     for i in args:
         total += pow(i, power)
     return total
+
 
 print(powersum(2, 3, 4))
 print(powersum(2, 10))
@@ -52,6 +56,7 @@ from operator import itemgetter
 
 from itertools import groupby
 from datetime import datetime, timedelta
+
 
 groupMapStore = [
     {"id": 1, "name": "name1", "s_id": 100},
@@ -107,8 +112,11 @@ date = "2016-07-01"
 d = datetime.strptime(date, "%Y-%m-%d")
 print(d + timedelta(days=1))
 
+
 def week_of_month(year, month, day):
     end = int(datetime(year, month, day).strftime("%W"))
     start = int(datetime(year, month, 1).strftime("%W"))
     return end - start + 1
+
+
 print(week_of_month(2016, 8, 1))
