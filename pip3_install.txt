@@ -1,1 +1,1 @@
-pip3 install requests pandas pandasql numpy tensorflow seaborn matplotlib Pillow scikit-image selenium IPython sklearn efficient-apriori graphviz nltk jieba lxml xlrd
+pip3 install pytest requests pandas pandasql numpy keras tensorflow seaborn matplotlib opencv-python Pillow scikit-image selenium IPython sklearn efficient-apriori statsmodels graphviz nltk jieba lxml xlrd
