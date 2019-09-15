@@ -11,7 +11,7 @@ def reverse(text):
 
 
 def is_palindrome(text):
-    text = text.lower();
+    text = text.lower()
     text = text.replace(' ', '')
     for char in string.punctuation:
         text = text.replace(char, '')

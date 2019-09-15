@@ -2,7 +2,7 @@
 
 """
 
-#1 读写文本数据
+# 1 读写文本数据
 with open('data/somefile.txt', 'rt') as f:
     data = f.read()
     print(data)
@@ -17,12 +17,12 @@ with open('data/write.txt', 'wt', errors='ignore') as f:
     print('content1', file=f)
     print('content2\u0664', file=f)
 
-#2 将输出重定向到文件中
+# 2 将输出重定向到文件中
 with open('data/write.txt', 'wt', errors='ignore') as f:
     print('content1', file=f)
     print('content2\u0664', file=f)
 
-#3 以不同的分隔符或行结尾符完成打印
+# 3 以不同的分隔符或行结尾符完成打印
 print('ACME', 50, 91.5)
 print('ACME', 50, 91.5, sep=',')
 print('ACME', 50, 91.5, sep=',', end='!!\n')
@@ -35,7 +35,7 @@ row = ['ACME', 50, 91.5]
 print(','.join(str(x) for x in row))
 print(*row, sep=',')
 
-#4 读写二进制数据
+# 4 读写二进制数据
 with open('data/data.bin', 'rb') as f:
     data = f.read()
     print(data)
@@ -61,6 +61,8 @@ with open('data/data.bin', 'wb') as f:
 
 # 写入数组
 import array
+
+
 nums = array.array('i', [1, 2, 3, 4])
 with open('data/data.bin', 'wb') as f:
     f.write(nums)
@@ -70,21 +72,23 @@ with open('data/data.bin', 'rb') as f:
     f.readinto(a)
 print(a)
 
-#5 对已不存在的文件执行写入操作
+# 5 对已不存在的文件执行写入操作
 try:
     with open('data/somefile.txt', 'xt') as f:
         f.write('Hello\n')
 except FileExistsError:
     print('file already exists!')
 import os
+
+
 if not os.path.exists('data/somefile.txt'):
     with open('data/somefile.txt', 'wt') as f:
         f.write('Hello\n')
 else:
     print('file already exists!')
 
-#6 在字符串上执行I/O操作
-from base import io
+# 6 在字符串上执行I/O操作
+import io
 
 
 s = io.StringIO()
@@ -99,13 +103,17 @@ s = io.BytesIO()
 s.write(b'binary data')
 print(s.getvalue())
 
-#7 读写压缩的数据文件
+# 7 读写压缩的数据文件
 import gzip
+
+
 with gzip.open('data/access-log.gz', 'rt') as f:
     text = f.read()
     print(text)
 
 import bz2
+
+
 with bz2.open('data/access-log.bz2', 'rt') as f:
     text = f.read()
     print(text)
@@ -119,23 +127,28 @@ with gzip.open(f, 'rt') as g:
     text = g.read()
     print(text)
 
-#8 对固定大小的记录进行迭代
+# 8 对固定大小的记录进行迭代
 from functools import partial
+
+
 RECORD_SIZE = 2
 with open('data/data.bin', 'rb') as f:
     records = iter(partial(f.read, RECORD_SIZE), b'')
     for r in records:
         print(r)
 
-#9 将二进制数据读取到可变缓冲区中
+# 9 将二进制数据读取到可变缓冲区中
 # 将数据读取到可变数组中,使用文件对象的readinto()方法即可
 import os.path
+
 
 def read_into_buffer(filename):
     buf = bytearray(os.path.getsize(filename))
     with open(filename, 'rb') as f:
         f.readinto(buf)
     return buf
+
+
 with open('data/data.bin', 'wb') as f:
     f.write(b'Hello World')
 buf = read_into_buffer('data/data.bin')
@@ -150,18 +163,20 @@ print(m2)
 m2[:] = b'WORLD'
 print(buf)
 
-#10 对二进制文件做内存映射
+# 10 对二进制文件做内存映射
 import mmap
+
 
 def memory_map(filename, access=mmap.ACCESS_WRITE):
     size = os.path.getsize(filename)
     fd = os.open(filename, os.O_RDWR)
     return mmap.mmap(fd, size, access=access)
 
+
 # 初始化文件
 size = 1000000
 with open('data/bigdata.bin', 'wb') as f:
-    f.seek(size-1)
+    f.seek(size - 1)
     f.write(b'\x00')
 m = memory_map('data/bigdata.bin')
 print(len(m))
@@ -184,7 +199,7 @@ print(m[0:4])
 m[0:4] = b'\x07\x01\x00\x00'
 print(v[0])
 
-#11 处理路径名
+# 11 处理路径名
 path = '/users/data.csv'
 print(os.path.basename(path))
 print(os.path.dirname(path))
@@ -193,7 +208,7 @@ path = '~/data/data.csv'
 print(os.path.expanduser(path))
 print(os.path.splitext(path))
 
-#12 检测文件是否存在
+# 12 检测文件是否存在
 print(os.path.exists('data/somefile.txt'))
 print(os.path.exists('/etc/passwd'))
 print(os.path.isfile('data/somefile.txt'))
@@ -203,10 +218,14 @@ print(os.path.realpath('data/somefile.txt'))
 print(os.path.getsize('data/somefile.txt'))
 print(os.path.getmtime('data/somefile.txt'))
 import time
+
+
 print(time.ctime(os.path.getmtime('data/somefile.txt')))
 
-#13 获取目录内容的列表
+# 13 获取目录内容的列表
 import sys
+
+
 sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
 names = os.listdir('data')
 print(names)
@@ -220,9 +239,13 @@ print(pyfiles)
 
 # 文件名的匹配
 import glob
+
+
 pyfiles = glob.glob('./*.py')
 print(pyfiles)
 from fnmatch import fnmatch
+
+
 pyfiles = [name for name in os.listdir('.') if fnmatch(name, '*.py')]
 print(pyfiles)
 
@@ -235,8 +258,10 @@ file_metadata = [(name, os.stat(name)) for name in pyfiles]
 for name, meta in file_metadata:
     print(name, meta.st_size, meta.st_mtime)
 
-#15 绕过文件名编码
+# 15 绕过文件名编码
 import sys
+
+
 print(sys.getfilesystemencoding())
 # write a file using a unicode filename
 with open('data/jalape\xf1o.txt', 'w') as f:
@@ -246,18 +271,23 @@ print(os.listdir(b'data/'))
 with open('data/jalape\xf1o.txt', 'r') as f:
     print(f.read())
 
-#15 打印无法解码的文件名
+
+# 15 打印无法解码的文件名
 def bad_filename(filename):
     temp = filename.encode(sys.getfilesystemencoding(), errors='ignore')
     return temp.decode('latin-1')
+
+
 filename = 'data/jalape\xf1o.txt'
 try:
     print(filename)
 except UnicodeEncodeError:
     print(bad_filename(filename))
 
-#16 为已经打开的文件添加或修改编码方法
+# 16 为已经打开的文件添加或修改编码方法
 import urllib.request
+
+
 u = urllib.request.urlopen('http://www.python.org')
 f = io.TextIOWrapper(u, encoding='utf-8')
 text = f.read()
@@ -267,21 +297,23 @@ sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
 print(sys.stdout.encoding)
 
 f = open('data/data.bin', 'w')
-print(f) # 文本处理层,负责编码和解码Unicode
-print(f.buffer) # 缓存I/O层,负责处理二进制数据
-print(f.buffer.raw) # 原始文件,代表操作系统底层的文件描述符
+print(f)  # 文本处理层,负责编码和解码Unicode
+print(f.buffer)  # 缓存I/O层,负责处理二进制数据
+print(f.buffer.raw)  # 原始文件,代表操作系统底层的文件描述符
 
-#17 将字节数据写入文本文件
+# 17 将字节数据写入文本文件
 sys.stdout.buffer.write(b'Hello\n')
 
-#18 将已有的文件描述符包装为文件对象
+# 18 将已有的文件描述符包装为文件对象
 fd = os.open('data/write.txt', os.O_WRONLY | os.O_CREAT)
 f = open(fd, 'wt')
 f.write('hello world\n')
 f.close()
 
-#19 创建临时文件和目录
+# 19 创建临时文件和目录
 from tempfile import TemporaryFile
+
+
 with TemporaryFile('w+t') as f:
     f.write('Hello World\n')
     f.write('Testing\n')
@@ -297,15 +329,20 @@ print(data)
 f.close()
 
 from tempfile import NamedTemporaryFile
+
+
 with NamedTemporaryFile('w+t') as f:
     print(f.name)
 
 from tempfile import TemporaryDirectory
+
+
 with TemporaryDirectory() as dirname:
     print(dirname)
 
-#20 同串口进行通信
+# 20 同串口进行通信
 import serial
+
 
 try:
     ser = serial.Serial('COM0', baudrate=9600, bytesize=8, parity='N', stopbits=1)
@@ -315,8 +352,10 @@ try:
 except Exception:
     print('serial error')
 
-#21 序列化Python对象
+# 21 序列化Python对象
 import pickle
+
+
 data = [1, 2, 3, 4]
 f = open('data/serializing', 'wb')
 pickle.dump(data, f)
@@ -344,8 +383,10 @@ print(pickle.load(f))
 # 某些特定类型的对象是无法进行pickle操作的,需要自定义__getstate__和__serstate__方法
 import threading
 
+
 class Countdown:
     """Countdown Thread"""
+
     def __init__(self, n):
         self.n = n
         self.thr = threading.Thread(target=self.run)
@@ -362,6 +403,8 @@ class Countdown:
 
     def __setstate__(self, n):
         self.__init__(n)
+
+
 c = Countdown(30)
 
 f = open('data/thread', 'wb')
